@@ -7,7 +7,8 @@ PhotoImage = ImageTk.PhotoImage
 UNIT = 50  # pixels
 HEIGHT = 5  # grid height
 WIDTH = 5  # grid width
-
+Nx = 5  #卸载率的粒度
+M = 5  #云+MEC个数
 np.random.seed(1)
 
 
@@ -15,21 +16,19 @@ class Env(tk.Tk):
     def __init__(self):
         super(Env, self).__init__()
         #修改动作空间# TODO
-        self.action_space = ['u', 'd', 'l', 'r']
+        self.action_space = []
+        for x in range(0, Nx * (M + 1) + 1):
+            self.action_space.append(x)
         self.action_size = len(self.action_space)
+
         self.title('DeepSARSA')
+
         self.geometry('{0}x{1}'.format(HEIGHT * UNIT, HEIGHT * UNIT))
-        self.shapes = self.load_images()
+        self.task = self.load_task()
         self.canvas = self._build_canvas()
         self.counter = 0
         self.rewards = []
         self.goal = []
-        # obstacle
-        self.set_reward([0, 1], -1)
-        self.set_reward([1, 2], -1)
-        self.set_reward([2, 3], -1)
-        # #goal
-        self.set_reward([4, 4], 1)
 
     def _build_canvas(self):
         canvas = tk.Canvas(self, bg='white',
@@ -54,15 +53,18 @@ class Env(tk.Tk):
 
         return canvas
 
-    def load_images(self):
-        rectangle = PhotoImage(
-            Image.open("../img/rectangle.png").resize((30, 30)))
-        triangle = PhotoImage(
-            Image.open("../img/triangle.png").resize((30, 30)))
-        circle = PhotoImage(
-            Image.open("../img/circle.png").resize((30, 30)))
-
-        return rectangle, triangle, circle
+    def load_task(self):
+        filename = 'txt'
+        pos = []
+        Efield = []
+        with open(filename, 'r') as file_to_read:
+            while True:
+                lines = file_to_read.readline()
+                if not lines:
+                    break
+                p_tmp, E_tmp = [float(i) for i in lines.split()]  # 分割为空格
+                pos.append(p_tmp)  # 添加新读取的数据
+                Efield.append(E_tmp)
 
     def reset_reward(self):
 
@@ -71,12 +73,7 @@ class Env(tk.Tk):
 
         self.rewards.clear()
         self.goal.clear()
-        self.set_reward([0, 1], -1)
-        self.set_reward([1, 2], -1)
-        self.set_reward([2, 3], -1)
 
-        # #goal
-        self.set_reward([4, 4], 1)
 
     def set_reward(self, state, reward):
         state = [int(state[0]), int(state[1])]
@@ -113,9 +110,8 @@ class Env(tk.Tk):
         for reward in self.rewards:
             if reward['state'] == state:
                 rewards += reward['reward']
-                if reward['reward'] == 1:
-                    check_list['if_goal'] = True
-
+                #if reward['reward'] == 1:
+                    #check_list['if_goal'] = True
         check_list['rewards'] = rewards
 
         return check_list
@@ -138,19 +134,17 @@ class Env(tk.Tk):
         self.counter += 1
         self.render()
 
-        if self.counter % 2 == 1:
-            self.rewards = self.move_rewards()
 
         next_coords = self.move(self.rectangle, action)
+
         check = self.check_if_reward(self.coords_to_state(next_coords))
-        done = check['if_goal']
         reward = check['rewards']
 
         self.canvas.tag_raise(self.rectangle)
 
         s_ = self.get_state()
 
-        return s_, reward, done
+        return s_, reward
 
     def get_state(self):
 
