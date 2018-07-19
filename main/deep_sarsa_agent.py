@@ -8,17 +8,17 @@ from keras.optimizers import Adam
 from keras.models import Sequential
 
 EPISODES = 1000
-
+Nx = 5  # 卸载率的粒度
+M = 5  # 云+MEC个数
 
 # this is DeepSARSA Agent for the GridWorld
 # Utilize Neural Network as q function approximator
 class DeepSARSAgent:
     def __init__(self):
         self.load_model = False
-        # actions which agent can do 需要改变动作空间# TODO
-        self.action_space = [0, 1, 2, 3, 4]
-        # get size of state and action
-        self.action_size = len(self.action_space)
+
+        self.action_size = Nx * (M + 1) + 1
+
         self.state_size = 15
         self.discount_factor = 0.99
         self.learning_rate = 0.001
@@ -40,9 +40,9 @@ class DeepSARSAgent:
         model.add(Dense(30, input_dim=self.state_size, activation='relu'))
         model.add(Dense(30, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
-        #打印模型结构,可删# TODO
+        # 打印模型结构,可删# TODO
         model.summary()
-        #损失函数与优化算法以及指标列表的选择# TODO
+        # 损失函数与优化算法以及指标列表的选择# TODO
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         return model
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
             # get action for the current state and go one step in environment
             action = agent.get_action(state)
-            next_state, reward, done = env.step(action)
+            next_state, reward, done = env.step(action, state)
             next_state = np.reshape(next_state, [1, 15])
             next_action = agent.get_action(next_state)
             agent.train_model(state, action, reward, next_state, next_action,
