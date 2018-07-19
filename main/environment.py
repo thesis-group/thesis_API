@@ -1,25 +1,27 @@
 import time
 import numpy as np
 import tkinter as tk
+from model import structs
 from PIL import ImageTk, Image
 
 PhotoImage = ImageTk.PhotoImage
-UNIT = 50  # pixels
+
 HEIGHT = 5  # grid height
 WIDTH = 5  # grid width
-Nx = 5  #卸载率的粒度
-M = 5  #云+MEC个数
+
+Nx = 5  # 卸载率的粒度
+M = 5  # 云+MEC个数
+B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
 np.random.seed(1)
 
 
 class Env(tk.Tk):
     def __init__(self):
         super(Env, self).__init__()
-        #修改动作空间# TODO
-        self.action_space = []
-        for x in range(0, Nx * (M + 1) + 1):
-            self.action_space.append(x)
-        self.action_size = len(self.action_space)
+        # z修改动作空间# TODO
+
+        self.action_size = Nx * (M + 1) + 1
 
         self.title('DeepSARSA')
 
@@ -28,7 +30,7 @@ class Env(tk.Tk):
         self.canvas = self._build_canvas()
         self.counter = 0
         self.rewards = []
-        self.goal = []
+        self.bandwidth = []
 
     def _build_canvas(self):
         canvas = tk.Canvas(self, bg='white',
@@ -54,7 +56,7 @@ class Env(tk.Tk):
         return canvas
 
     def load_task(self):
-        filename = 'txt'
+        filename = '.../train/data.txt'
         pos = []
         Efield = []
         with open(filename, 'r') as file_to_read:
@@ -130,44 +132,21 @@ class Env(tk.Tk):
         self.reset_reward()
         return self.get_state()
 
-    def step(self, action):
-        self.counter += 1
+    def step(self, action, state):
+        self.e_time += 1  # TODO
         self.render()
 
+        s_ = structs.state()
+        s_.bandwidth = self.bandwidth
+        s_.battery = state.battery - self.battery_cost + self.energy_harvest
+        s_.energy_estimate = self.predict()
+        s_.task_len, s_.rest = self.Qlenth()
 
-        next_coords = self.move(self.rectangle, action)
+        self.excution()
 
-        check = self.check_if_reward(self.coords_to_state(next_coords))
-        reward = check['rewards']
-
-        self.canvas.tag_raise(self.rectangle)
-
-        s_ = self.get_state()
+        reward = self.get_reward(state, action)
 
         return s_, reward
-
-    def get_state(self):
-
-        location = self.coords_to_state(self.canvas.coords(self.rectangle))
-        agent_x = location[0]
-        agent_y = location[1]
-
-        states = list()
-
-        # locations.append(agent_x)
-        # locations.append(agent_y)
-
-        for reward in self.rewards:
-            reward_location = reward['state']
-            states.append(reward_location[0] - agent_x)
-            states.append(reward_location[1] - agent_y)
-            if reward['reward'] < 0:
-                states.append(-1)
-                states.append(reward['direction'])
-            else:
-                states.append(1)
-
-        return states
 
     def move_rewards(self):
         new_rewards = []
@@ -180,56 +159,23 @@ class Env(tk.Tk):
             new_rewards.append(temp)
         return new_rewards
 
-    def move_const(self, target):
+    def excution(self):
+        pass  # 更新带宽等 TODO
 
-        s = self.canvas.coords(target['figure'])
+    def predict(self):
+        pass  # 预测下一阶段能量收集多少 TODO
+        energy = 0.0
+        return energy
 
-        base_action = np.array([0, 0])
+    def Qlenth(self):
+        pass  # 队列长度和当前任务lifespan TODO
+        return 0, 0.0
 
-        if s[0] == (WIDTH - 1) * UNIT + UNIT / 2:
-            target['direction'] = 1
-        elif s[0] == UNIT / 2:
-            target['direction'] = -1
-
-        if target['direction'] == -1:
-            base_action[0] += UNIT
-        elif target['direction'] == 1:
-            base_action[0] -= UNIT
-
-        if (target['figure'] is not self.rectangle
-           and s == [(WIDTH - 1) * UNIT, (HEIGHT - 1) * UNIT]):
-            base_action = np.array([0, 0])
-
-        self.canvas.move(target['figure'], base_action[0], base_action[1])
-
-        s_ = self.canvas.coords(target['figure'])
-
-        return s_
-
-    def move(self, target, action):
-        s = self.canvas.coords(target)
-
-        base_action = np.array([0, 0])
-
-        if action == 0:  # up
-            if s[1] > UNIT:
-                base_action[1] -= UNIT
-        elif action == 1:  # down
-            if s[1] < (HEIGHT - 1) * UNIT:
-                base_action[1] += UNIT
-        elif action == 2:  # right
-            if s[0] < (WIDTH - 1) * UNIT:
-                base_action[0] += UNIT
-        elif action == 3:  # left
-            if s[0] > UNIT:
-                base_action[0] -= UNIT
-
-        self.canvas.move(target, base_action[0], base_action[1])
-
-        s_ = self.canvas.coords(target)
-
-        return s_
-
+    def get_reward(self, state, action):
+        r_ = sa * failcost() + beta * (E0 + Em) + gama * max(T1, T2)
+        # 计算当前的即使回报 TODO
+        return r_
+    
     def render(self):
         time.sleep(0.07)
         self.update()
