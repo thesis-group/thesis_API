@@ -31,29 +31,8 @@ class Env(tk.Tk):
         self.counter = 0
         self.rewards = []
         self.bandwidth = []
-
-    def _build_canvas(self):
-        canvas = tk.Canvas(self, bg='white',
-                           height=HEIGHT * UNIT,
-                           width=WIDTH * UNIT)
-        # create grids
-        for c in range(0, WIDTH * UNIT, UNIT):  # 0~400 by 80
-            x0, y0, x1, y1 = c, 0, c, HEIGHT * UNIT
-            canvas.create_line(x0, y0, x1, y1)
-        for r in range(0, HEIGHT * UNIT, UNIT):  # 0~400 by 80
-            x0, y0, x1, y1 = 0, r, HEIGHT * UNIT, r
-            canvas.create_line(x0, y0, x1, y1)
-
-        self.rewards = []
-        self.goal = []
-        # add image to canvas
-        x, y = UNIT/2, UNIT/2
-        self.rectangle = canvas.create_image(x, y, image=self.shapes[0])
-
-        # pack all`
-        canvas.pack()
-
-        return canvas
+        self.battery_cost = 0.0
+        self.energy_harvest = 0.0
 
     def load_task(self):
         filename = '.../train/data.txt'
@@ -112,8 +91,6 @@ class Env(tk.Tk):
         for reward in self.rewards:
             if reward['state'] == state:
                 rewards += reward['reward']
-                #if reward['reward'] == 1:
-                    #check_list['if_goal'] = True
         check_list['rewards'] = rewards
 
         return check_list
@@ -136,7 +113,10 @@ class Env(tk.Tk):
         self.e_time += 1  # TODO
         self.render()
 
-        s_ = structs.state()
+        self.battery_cost = self.energy_cost()
+        self.energy_harvest = self.energy_get()
+
+        s_ = structs.State()
         s_.bandwidth = self.bandwidth
         s_.battery = state.battery - self.battery_cost + self.energy_harvest
         s_.energy_estimate = self.predict()
@@ -172,10 +152,18 @@ class Env(tk.Tk):
         return 0, 0.0
 
     def get_reward(self, state, action):
-        r_ = sa * failcost() + beta * (E0 + Em) + gama * max(T1, T2)
+        r_ = sa * failcost() + beta * (self.E_Local + Em) + gama * max(T1, T2)
         # 计算当前的即使回报 TODO
         return r_
-    
+
+    def energy_cost(self):
+        self.E_Local = power * x_offloading * task.cd / state.bandwidth[m]
+        self E_MEC = fai * f ^ 2
+        return E_Local + E_MEC
+
+    def energy_get(self):
+        return 0,0
+
     def render(self):
         time.sleep(0.07)
         self.update()
