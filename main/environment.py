@@ -24,7 +24,7 @@ excu_v = [1, 1, 1, 1, 1]
 
 e_time = 0  # 当前时间
 currentTaskIndex = 0  # 当前做到的任务标号
-taskList = []  # 任务集合
+
 np.random.seed(1)
 
 
@@ -41,7 +41,7 @@ class Env(tk.Tk):
         self.title('DeepSARSA')
 
         self.geometry('{0}x{1}'.format(HEIGHT * UNIT, HEIGHT * UNIT))
-        self.task = self.load_task()
+        self.taskList = self.load_task()
         self.canvas = self._build_canvas()
         self.counter = 0
         self.rewards = []
@@ -52,15 +52,15 @@ class Env(tk.Tk):
     def load_task(self):
         filename = '.../train/data.txt'
         pos = []
-        Efield = []
+        temp = structs.Task
         with open(filename, 'r') as file_to_read:
             while True:
                 lines = file_to_read.readline()
                 if not lines:
                     break
-                p_tmp, E_tmp = [float(i) for i in lines.split()]  # 分割为空格
-                pos.append(p_tmp)  # 添加新读取的数据
-                Efield.append(E_tmp)
+                temp.cd, temp.rd, temp.rest = [float(i) for i in lines.split()]  # 分割为空格
+                pos.append(temp)  # 添加新读取的数据
+        return pos
 
     def reset_reward(self):
 
@@ -116,7 +116,7 @@ class Env(tk.Tk):
         self.battery_cost = self.energy_cost(task)
         self.energy_harvest = self.energy_get()
 
-        s_ = structs.State()
+        s_ = structs.State
         s_.bandwidth = self.bandwidth
         s_.battery = state.battery - self.battery_cost + self.energy_harvest
         s_.energy_estimate = self.predict()
@@ -124,7 +124,7 @@ class Env(tk.Tk):
 
         self.excution(task)
 
-        reward = self.get_reward(state, action)
+        reward = self.get_reward(state, action, task)
 
         return s_, reward
 
