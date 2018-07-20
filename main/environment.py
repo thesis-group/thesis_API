@@ -64,21 +64,9 @@ class Env(tk.Tk):
         x = int(state[0])
         y = int(state[1])
         temp = {}
-        if reward > 0:
-            temp['reward'] = reward
-            temp['figure'] = self.canvas.create_image((UNIT * x) + UNIT / 2,
-                                                      (UNIT * y) + UNIT / 2,
-                                                      image=self.shapes[2])
-
-            self.goal.append(temp['figure'])
-
-
-        elif reward < 0:
+        if reward < 0:
             temp['direction'] = -1
             temp['reward'] = reward
-            temp['figure'] = self.canvas.create_image((UNIT * x) + UNIT / 2,
-                                                      (UNIT * y) + UNIT / 2,
-                                                      image=self.shapes[1])
 
         temp['coords'] = self.canvas.coords(temp['figure'])
         temp['state'] = state
@@ -123,9 +111,9 @@ class Env(tk.Tk):
         s_.bandwidth = self.bandwidth
         s_.battery = state.battery - self.battery_cost + self.energy_harvest
         s_.energy_estimate = self.predict()
-        s_.task_len, s_.rest = self.Qlenth()
+        s_.task_len, s_.rest = self.Qlenth(state)
 
-        self.excution()
+        self.excution(task)
 
         reward = self.get_reward(state, action)
 
@@ -143,15 +131,20 @@ class Env(tk.Tk):
         return new_rewards
 
     def excution(self, task):
-        for i in range(self.bandwidth):
-            self.bandwidth[i] = random.randomInt(1, 9)  # 目前的带宽范围是1-9
+        for i in range(len(self.bandwidth)):
+            self.bandwidth[i] = random.randint(1, 9)  # 目前的带宽范围是1-9
         self.e_time += self.calculateTimeCost(task)
         pass  # 更新带宽等 TODO
 
     # 计算任务的花费时间
     def calculateTimeCost(self, task):
-
-        pass
+        tt = 0.1
+        tu = x_off * task.cd / self.bandwidth[m]
+        te = x_off * task.cd / excu_v[m]
+        td = x_off * task.rd / self.bandwidth[m]
+        tm = tu + te + td + tt
+        tl = 0
+        return max(tm, tl)
 
     def predict(self):
         pass  # 预测下一阶段能量收集多少 TODO
@@ -159,13 +152,13 @@ class Env(tk.Tk):
         return energy
 
     def Qlenth(self, state):
-        currentQueueLength = state.task_len
+        currentqlength = state.task_len
         nextTask = taskList[currentTaskIndex + 1]
         while i in range(currentTaskIndex, len(taskList)):
             if taskList[i].arrivalTime <= e_time:
-                currentQueueLength = currentQueueLength + 1
+                currentqlength = currentqlength + 1
             pass  # 队列长度和当前任务lifespan TODO
-        return currentQueueLength, nextTask.arrivalTime + nextTask.rest - e_time
+        return currentqlength, nextTask.arrivalTime + nextTask.rest - e_time
 
     def get_reward(self, state, action):
         r_ = sa * failcost() + beta * (self.E_Local + Em) + gama * max(T1, T2)
@@ -173,7 +166,7 @@ class Env(tk.Tk):
         return r_
 
     def energy_cost(self):
-        self.E_Local = power * x_offloading * task.cd / state.bandwidth[m]
+        self.E_Local = power * x_off * task.cd / state.bandwidth[m]
         self.E_MEC = fai * f ^ 2
         return E_Local + E_MEC
 

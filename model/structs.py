@@ -8,7 +8,7 @@ State、Task
 """
 
 
-class state(object):
+class State(object):
     """
     状态模型
     """
@@ -35,7 +35,7 @@ class state(object):
         pass
 
 
-class task(object):
+class Task(object):
     # 剩余生命周期
     rest = 0.0
     # 任务的到达时间
