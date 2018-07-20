@@ -86,11 +86,6 @@ class Env(tk.Tk):
 
         return check_list
 
-    def coords_to_state(self, coords):
-        x = int((coords[0] - UNIT / 2) / UNIT)
-        y = int((coords[1] - UNIT / 2) / UNIT)
-        return [x, y]
-
     def reset(self):
         self.update()
         time.sleep(0.5)

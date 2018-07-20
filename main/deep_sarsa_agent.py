@@ -1,5 +1,4 @@
 import copy
-import pylab
 import random
 import numpy as np
 from environment import Env
@@ -108,13 +107,7 @@ if __name__ == "__main__":
 
             state = copy.deepcopy(next_state)
 
-            if done:
-                scores.append(score)
-                episodes.append(e)
-                pylab.plot(episodes, scores, 'b')
-                pylab.savefig("./save_graph/deep_sarsa_.png")
-                print("episode:", e, "  score:", score, "global_step",
-                      global_step, "  epsilon:", agent.epsilon)
+
 
         if e % 100 == 0:
             agent.model.save_weights("./save_model/deep_sarsa.h5")
