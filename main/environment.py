@@ -10,9 +10,17 @@ PhotoImage = ImageTk.PhotoImage
 HEIGHT = 5  # grid height
 WIDTH = 5  # grid width
 
+sa_ = 0.1
+beta = 0.1
+gamma = 0.1
+fai = 0.1
+
+power = 1
+
 Nx = 5  # 卸载率的粒度
 M = 5  # 云+MEC个数
 B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+excu_v = [1, 1, 1, 1, 1]
 
 e_time = 0  # 当前时间
 currentTaskIndex = 0  # 当前做到的任务标号
@@ -26,6 +34,9 @@ class Env(tk.Tk):
         # z修改动作空间# TODO
 
         self.action_size = Nx * (M + 1) + 1
+
+        self.x_off = 0
+        self.m = 0
 
         self.title('DeepSARSA')
 
@@ -99,7 +110,10 @@ class Env(tk.Tk):
         self.e_time += 1  # TODO
         self.render()
 
-        self.battery_cost = self.energy_cost()
+        self.x_off = (action + 5) / 6 * 0.2
+        self.m = (action + 5) % 6
+
+        self.battery_cost = self.energy_cost(task)
         self.energy_harvest = self.energy_get()
 
         s_ = structs.State()
@@ -134,9 +148,9 @@ class Env(tk.Tk):
     # 计算任务的花费时间
     def calculateTimeCost(self, task):
         tt = 0.1
-        tu = x_off * task.cd / self.bandwidth[m]
-        te = x_off * task.cd / excu_v[m]
-        td = x_off * task.rd / self.bandwidth[m]
+        tu = self.x_off * task.cd / self.bandwidth[self.m]
+        te = self.x_off * task.cd / excu_v[self.m]
+        td = self.x_off * task.rd / self.bandwidth[self.m]
         tm = tu + te + td + tt
         tl = 0
         return max(tm, tl)
@@ -155,15 +169,15 @@ class Env(tk.Tk):
             pass  # 队列长度和当前任务lifespan TODO
         return currentqlength, nextTask.arrivalTime + nextTask.rest - e_time
 
-    def get_reward(self, state, action):
-        r_ = sa * failcost() + beta * (self.E_Local + Em) + gama * max(T1, T2)
+    def get_reward(self, state, action, task):
+        r_ = sa_ * failcost() + beta * (self.E_Local + self.E_MEC) + gama * self.calculateTimeCost(task)
         # 计算当前的即使回报 TODO
         return r_
 
-    def energy_cost(self):
-        self.E_Local = power * x_off * task.cd / state.bandwidth[m]
-        self.E_MEC = fai * f ^ 2
-        return E_Local + E_MEC
+    def energy_cost(self, task):
+        self.E_Local = power * self.x_off * task.cd / self.bandwidth[self.m]
+        self.E_MEC = fai * frequency ^ 2
+        return self.E_Local + self.E_MEC
 
     def energy_get(self):
         return 0, 0
