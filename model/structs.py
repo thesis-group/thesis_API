@@ -14,7 +14,7 @@ class state(object):
     """
 
     def __init__(self, args):
-        self.bandwidth = []
+        self.bandwidth = [0, 0, 0, 0, 0]
         self.energy_estimate = 0.0
         self.battery = 0.0
         self.task_len = 0
@@ -36,6 +36,15 @@ class state(object):
 
 
 class task(object):
+    # 剩余生命周期
+    rest = 0.0
+    # 任务的到达时间
+    arrivalTime = 0
+    # 需计算数据量
+    cd = 0.0
+    # 传出数据量
+    rd = 0.0
+
     """
     任务模型
     """
@@ -43,12 +52,12 @@ class task(object):
     def __init__(self, args):
         # 剩余生命周期
         self.rest = 0.0
+        # 任务的到达时间
+        self.arrivalTime = 0
         # 需计算数据量
         self.cd = 0.0
         # 传出数据量
         self.rd = 0.0
-
-
 
         """
         任务模型构造方法

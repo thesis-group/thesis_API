@@ -3,6 +3,7 @@ import numpy as np
 import tkinter as tk
 from model import structs
 from PIL import ImageTk, Image
+import random
 
 PhotoImage = ImageTk.PhotoImage
 
@@ -13,6 +14,9 @@ Nx = 5  # 卸载率的粒度
 M = 5  # 云+MEC个数
 B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
+e_time = 0  # 当前时间
+currentTaskIndex = 0  # 当前做到的任务标号
+taskList = []  # 任务集合
 np.random.seed(1)
 
 
@@ -55,7 +59,6 @@ class Env(tk.Tk):
         self.rewards.clear()
         self.goal.clear()
 
-
     def set_reward(self, state, reward):
         state = [int(state[0]), int(state[1])]
         x = int(state[0])
@@ -64,8 +67,8 @@ class Env(tk.Tk):
         if reward > 0:
             temp['reward'] = reward
             temp['figure'] = self.canvas.create_image((UNIT * x) + UNIT / 2,
-                                                       (UNIT * y) + UNIT / 2,
-                                                       image=self.shapes[2])
+                                                      (UNIT * y) + UNIT / 2,
+                                                      image=self.shapes[2])
 
             self.goal.append(temp['figure'])
 
@@ -109,7 +112,7 @@ class Env(tk.Tk):
         self.reset_reward()
         return self.get_state()
 
-    def step(self, action, state):
+    def step(self, action, state, task):
         self.e_time += 1  # TODO
         self.render()
 
@@ -139,17 +142,30 @@ class Env(tk.Tk):
             new_rewards.append(temp)
         return new_rewards
 
-    def excution(self):
+    def excution(self, task):
+        for i in range(self.bandwidth):
+            self.bandwidth[i] = random.randomInt(1, 9)  # 目前的带宽范围是1-9
+        self.e_time += self.calculateTimeCost(task)
         pass  # 更新带宽等 TODO
+
+    # 计算任务的花费时间
+    def calculateTimeCost(self, task):
+
+        pass
 
     def predict(self):
         pass  # 预测下一阶段能量收集多少 TODO
         energy = 0.0
         return energy
 
-    def Qlenth(self):
-        pass  # 队列长度和当前任务lifespan TODO
-        return 0, 0.0
+    def Qlenth(self, state):
+        currentQueueLength = state.task_len
+        nextTask = taskList[currentTaskIndex + 1]
+        while i in range(currentTaskIndex, len(taskList)):
+            if taskList[i].arrivalTime <= e_time:
+                currentQueueLength = currentQueueLength + 1
+            pass  # 队列长度和当前任务lifespan TODO
+        return currentQueueLength, nextTask.arrivalTime + nextTask.rest - e_time
 
     def get_reward(self, state, action):
         r_ = sa * failcost() + beta * (self.E_Local + Em) + gama * max(T1, T2)
@@ -158,11 +174,11 @@ class Env(tk.Tk):
 
     def energy_cost(self):
         self.E_Local = power * x_offloading * task.cd / state.bandwidth[m]
-        self E_MEC = fai * f ^ 2
+        self.E_MEC = fai * f ^ 2
         return E_Local + E_MEC
 
     def energy_get(self):
-        return 0,0
+        return 0, 0
 
     def render(self):
         time.sleep(0.07)
