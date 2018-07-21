@@ -10,7 +10,7 @@ from keras.models import Sequential
 
 EPISODES = 1000
 Nx = 5  # 卸载率的粒度
-M = 5  # 云+MEC个数
+M = 5  # MEC个数
 
 # this is DeepSARSA Agent for the GridWorld
 # Utilize Neural Network as q function approximator
@@ -20,7 +20,7 @@ class DeepSARSAgent:
 
         self.action_size = Nx * (M + 1) + 1
 
-        self.state_size = 9
+        self.state_size = 10
         self.discount_factor = 0.99
         self.learning_rate = 0.001
 
@@ -73,10 +73,10 @@ class DeepSARSAgent:
             target[action] = (reward + self.discount_factor *
                               self.model.predict(next_state)[0][next_action])
 
-        target = np.reshape(target, [1, 5])
+        target = np.reshape(target, [1, self.action_size])
         # make minibatch which includes target q value and predicted q value
         # and do the model fit!
-        self.model.fit(state, target, epochs=1, verbose=0)
+        self.model.fit(state, target, epochs=1, verbose=2)
 
 
 if __name__ == "__main__":
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         done = False
         score = 0
         state = env.reset()
-        shaped_state = state.reshape()
+        shaped_state = np.reshape(state.reshape(), [1, 10])
         action = agent.get_action(shaped_state)
 
         while not done:
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
             # get action for the current state and go one step in environment
             next_state, reward = env.step(action, state, task_index)
-            shaped_next_state = next_state.reshape()
+            shaped_next_state = np.reshape(next_state.reshape(), [1, 10])
 
             # 经验池
             data = [state, action, reward, next_state]

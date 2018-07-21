@@ -18,9 +18,9 @@ frequency = 1
 power = 1
 
 Nx = 5  # 卸载率的粒度
-M = 5  # 云+MEC个数
+M = 5  # MEC个数
 B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-excu_v = [1, 1, 1, 1, 1]
+excu_v = [1, 1, 1, 1, 1, 1]
 
 currentTaskIndex = -1  # 当前做到的任务标号
 
@@ -41,7 +41,7 @@ class Env(object):
         self.taskList = self.load_task()
         self.counter = 0
         self.rewards = []
-        self.bandwidth = [0, 0, 0, 0, 0]
+        self.bandwidth = [0, 0, 0, 0, 0, 0]
         self.e_time = 0
         self.failure = False
 
@@ -106,7 +106,8 @@ class Env(object):
         initial_state.energy_estimate = self.predict()
         initial_state.battery = 100
         initial_state.task_len = 1
-        self.e_time += self.calculateTimeCost(self.taskList[0])
+        # e_time 的情况和episode TODO
+        self.e_time = self.taskList[0].arrivalTime
         initial_state.rest = self.taskList[0].rest
         return initial_state
 
@@ -116,7 +117,9 @@ class Env(object):
         self.x_off = (action + 5) / 6 * 0.2
         self.m = (action + 5) % 6
 
-        self.battery_cost = self.energy_cost(self.taskList[index])
+        task = self.taskList[index]
+
+        self.battery_cost = self.energy_cost(task)
         self.energy_harvest = self.energy_get()
 
         s_ = structs.State()
@@ -127,7 +130,6 @@ class Env(object):
 
         self.failure = self.fail(s_.battery, s_.rest)
 
-        task = self.taskList[index]
         self.execution(task)
 
         reward = self.get_reward(state, action, task)
