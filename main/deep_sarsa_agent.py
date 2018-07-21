@@ -1,3 +1,4 @@
+# coding=utf-8
 import copy
 import random
 import numpy as np
@@ -91,8 +92,7 @@ if __name__ == "__main__":
     for e in range(EPISODES):
         done = False
         score = 0
-        state = env.reset()
-        # state 改格式 TODO
+        state = env.reset().reshape()
         state = np.reshape(state, [1, 15])
         action = agent.get_action(state)
 
