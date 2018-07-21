@@ -20,7 +20,7 @@ class DeepSARSAgent:
 
         self.action_size = Nx * (M + 1) + 1
 
-        self.state_size = 15
+        self.state_size = 9
         self.discount_factor = 0.99
         self.learning_rate = 0.001
 
