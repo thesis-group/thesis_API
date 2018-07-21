@@ -98,9 +98,7 @@ if __name__ == "__main__":
 
         while not done:
             # fresh env
-            # 任务失败机制 TODO
-            if succ:
-                task_index += 1
+            task_index += 1
 
             # get action for the current state and go one step in environment
             next_state, reward = env.step(action, state, task_index)

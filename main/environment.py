@@ -128,7 +128,7 @@ class Env(object):
         s_.energy_estimate = self.predict()
         s_.task_len, s_.rest = self.Qlenth(state)
 
-        self.failure = self.fail()
+        self.failure = self.fail(s_.battery, s_.rest)
 
         self.execution(task)
 
@@ -148,7 +148,9 @@ class Env(object):
         return new_rewards
 
     def execution(self, task):
-        # 失败判断  TODO
+        # 失败判断
+        if self.failure:
+            return
         for i in range(len(self.bandwidth)):
             self.bandwidth[i] = random.randint(1, 9)  # 目前的带宽范围是1-9
         self.e_time += self.calculateTimeCost(task)
@@ -172,18 +174,28 @@ class Env(object):
         currentqlength = state.task_len
         nextTask = self.taskList[currentTaskIndex + 1]
         for i in range(currentTaskIndex, len(self.taskList)):
-            if self.taskList[i].arrivalTime <= e_time:
+            if self.taskList[i].arrivalTime <= self.e_time:
                 currentqlength = currentqlength + 1
             pass  # 任务失败 TODO
-        return currentqlength, nextTask.arrivalTime + nextTask.rest - e_time
+        return currentqlength, nextTask.arrivalTime + nextTask.rest - self.e_time
 
     def get_reward(self, state, action, task):
         r_ = sa_ * self.failure + beta * (self.E_Lmocal + self.E_MEC) + gamma * self.calculateTimeCost(task)
         # 计算当前的即使回报 TODO
         return r_
 
-    def fail(self):
-        # TODO
+    def fail(self, battery, rest):
+        """
+        判断任务执行情况
+        :param battery: 电池电量
+        :param rest: 剩余时间
+        :type battery: int
+        :type rest: int
+        :return: 任务是否执行失败
+        :rtype: bool
+        """
+        if battery < 0 or rest < 0:
+            return False
         return True
 
     def energy_cost(self, task):
