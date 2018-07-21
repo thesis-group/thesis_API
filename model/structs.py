@@ -13,7 +13,7 @@ class State(object):
     状态模型
     """
 
-    def __init__(self, args):
+    def __init__(self):
         self.bandwidth = [0, 0, 0, 0, 0]
         self.energy_estimate = 0.0
         self.battery = 0.0
@@ -49,7 +49,7 @@ class Task(object):
     任务模型
     """
 
-    def __init__(self, args):
+    def __init__(self):
         # 剩余生命周期
         self.rest = 0.0
         # 任务的到达时间

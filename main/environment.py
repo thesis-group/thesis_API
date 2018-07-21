@@ -1,6 +1,6 @@
 import time
 import numpy as np
-import tkinter as tk
+
 from model import structs
 from PIL import ImageTk, Image
 import random
@@ -22,13 +22,13 @@ M = 5  # 云+MEC个数
 B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 excu_v = [1, 1, 1, 1, 1]
 
-e_time = 0  # 当前时间
+e_time = 0  # 当前时间 self TODO
 currentTaskIndex = 0  # 当前做到的任务标号
 
 np.random.seed(1)
 
 
-class Env(tk.Tk):
+class Env(object):
     def __init__(self):
         super(Env, self).__init__()
         # z修改动作空间# TODO
@@ -40,12 +40,12 @@ class Env(tk.Tk):
 
         self.title('DeepSARSA')
 
-        self.geometry('{0}x{1}'.format(HEIGHT * UNIT, HEIGHT * UNIT))
         self.taskList = self.load_task()
         self.canvas = self._build_canvas()
         self.counter = 0
         self.rewards = []
         self.bandwidth = []
+        self.failure = False
 
         self.E_MEC,self.E_Local = 0.0, 0.0
         self.battery_cost = 0.0
@@ -95,26 +95,28 @@ class Env(tk.Tk):
         return check_list
 
     def reset(self):
+        # 初始化 TODO
         self.reset_reward()
         return self.get_state()
 
-    def step(self, action, state, task):
-        self.e_time += 1  # TODO
-        self.render()
+    def step(self, action, state, index):
+        time.sleep(0.07)
 
         self.x_off = (action + 5) / 6 * 0.2
         self.m = (action + 5) % 6
 
-        self.battery_cost = self.energy_cost(task)
+        self.battery_cost = self.energy_cost(index)
         self.energy_harvest = self.energy_get()
 
-        s_ = structs.State
+        s_ = structs.State()
         s_.bandwidth = self.bandwidth
         s_.battery = state.battery - self.battery_cost + self.energy_harvest
         s_.energy_estimate = self.predict()
         s_.task_len, s_.rest = self.Qlenth(state)
 
-        self.excution(task)
+        self.failure = self.fail()
+
+        self.execution(task)
 
         reward = self.get_reward(state, action, task)
 
@@ -131,11 +133,11 @@ class Env(tk.Tk):
             new_rewards.append(temp)
         return new_rewards
 
-    def excution(self, task):
+    def execution(self, task):
+        # 失败判断  TODO
         for i in range(len(self.bandwidth)):
             self.bandwidth[i] = random.randint(1, 9)  # 目前的带宽范围是1-9
         self.e_time += self.calculateTimeCost(task)
-        pass  # 更新带宽等 TODO
 
     # 计算任务的花费时间
     def calculateTimeCost(self, task):
@@ -155,23 +157,28 @@ class Env(tk.Tk):
     def Qlenth(self, state):
         currentqlength = state.task_len
         nextTask = self.taskList[currentTaskIndex + 1]
-        while i in range(currentTaskIndex, len(self.taskList)):
+        for i in range(currentTaskIndex, len(self.taskList)):
             if self.taskList[i].arrivalTime <= e_time:
                 currentqlength = currentqlength + 1
-            pass  # 队列长度和当前任务lifespan TODO
+            pass  # 任务失败 TODO
         return currentqlength, nextTask.arrivalTime + nextTask.rest - e_time
 
     def get_reward(self, state, action, task):
-        r_ = sa_ * failcost() + beta * (self.E_Lmocal + self.E_MEC) + gama * self.calculateTimeCost(task)
+        r_ = sa_ * self.failure + beta * (self.E_Lmocal + self.E_MEC) + gamma * self.calculateTimeCost(task)
         # 计算当前的即使回报 TODO
         return r_
 
+    def fail(self):
+        # TODO
+        return True
+
     def energy_cost(self, task):
-        self.E_Local = power * self.x_off * task.cd / self.bandwidth[self.m]
-        self.E_MEC = fai * frequency ^ 2
+        self.E_MEC = power * self.x_off * task.cd / self.bandwidth[self.m]
+        self.E_Local = fai * frequency ^ 2 # TODO
         return self.E_Local + self.E_MEC
 
     def energy_get(self):
+        # TODO
         return 0.0
 
     def render(self):

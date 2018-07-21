@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
     task_index = 0
     succ = 0
-    scores, episodes = [], []
+
 
     data = []
     D = []
@@ -92,16 +92,17 @@ if __name__ == "__main__":
         done = False
         score = 0
         state = env.reset()
+        # state 改格式 TODO
         state = np.reshape(state, [1, 15])
         action = agent.get_action(state)
 
         while not done:
             # fresh env
+            # 任务失败机制 TODO
             if succ:
                 task_index += 1
 
             # get action for the current state and go one step in environment
-            # 还需要决定任务联动模式（task/index） TODO
             next_state, reward = env.step(action, state, task_index)
             next_state = np.reshape(next_state, [1, 15])
 
@@ -112,17 +113,13 @@ if __name__ == "__main__":
             # 缺少取出操作 TODO
 
             next_action = agent.get_action(next_state)
-            agent.train_model(state, action, reward, next_state, next_action,
-                              done)
+            agent.train_model(state, action, reward, next_state, next_action)
+
             state = next_state
             action = next_action
             # every time step we do training
 
-            score += reward
-
             state = copy.deepcopy(next_state)
-
-
 
         if e % 100 == 0:
             agent.model.save_weights("./save_model/deep_sarsa.h5")
