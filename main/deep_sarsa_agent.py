@@ -93,6 +93,7 @@ if __name__ == "__main__":
         score = 0
         state = env.reset()
         # state 改格式 TODO
+
         state = np.reshape(state, [1, 15])
         action = agent.get_action(state)
 
