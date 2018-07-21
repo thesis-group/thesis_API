@@ -108,7 +108,7 @@ if __name__ == "__main__":
             data = [state, action, reward, next_state]
             D.append(data)
 
-            # 缺少取出操作 TODO
+            # TODO 缺少取出操作
 
             next_action = agent.get_action(next_state)
             agent.train_model(state, action, reward, next_state, next_action)

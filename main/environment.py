@@ -15,6 +15,7 @@ sa_ = 0.1
 beta = 0.1
 gamma = 0.1
 fai = 0.1
+frequency = 1
 
 power = 1
 
@@ -166,7 +167,7 @@ class Env(object):
         return max(tm, tl)
 
     def predict(self):
-        pass  # 预测下一阶段能量收集多少 TODO
+        pass  # TODO 预测下一阶段能量收集多少，依赖于enery_get()
         energy = 0.0
         return energy
 
@@ -176,12 +177,11 @@ class Env(object):
         for i in range(currentTaskIndex, len(self.taskList)):
             if self.taskList[i].arrivalTime <= self.e_time:
                 currentqlength = currentqlength + 1
-            pass  # 任务失败 TODO
+            pass
         return currentqlength, nextTask.arrivalTime + nextTask.rest - self.e_time
 
     def get_reward(self, state, action, task):
-        r_ = sa_ * self.failure + beta * (self.E_Lmocal + self.E_MEC) + gamma * self.calculateTimeCost(task)
-        # 计算当前的即使回报 TODO
+        r_ = sa_ * self.failure + beta * (self.E_Local + self.E_MEC) + gamma * self.calculateTimeCost(task)
         return r_
 
     def fail(self, battery, rest):
@@ -195,14 +195,14 @@ class Env(object):
         :rtype: bool
         """
         if battery < 0 or rest < 0:
-            return False
-        return True
+            return True
+        return False
 
     def energy_cost(self, task):
         self.E_MEC = power * self.x_off * task.cd / self.bandwidth[self.m]
-        self.E_Local = fai * frequency ^ 2  # TODO
+        self.E_Local = fai * frequency ^ 2  # TODO E_local算式不确定
         return self.E_Local + self.E_MEC
 
     def energy_get(self):
-        # TODO
+        # TODO 能量获取机制不确定
         return 0.0
