@@ -20,11 +20,15 @@ class State(object):
         self.task_len = 0
         self.rest = 0.0
 
-        """
-        状态模型构造方法
-        :param args: 暂时不知道有哪些参数  # TODO
-        """
-        self.args = args
+    def reshape(self):
+        new_shape = []
+        for b in self.bandwidth:
+            new_shape.append(b)
+        new_shape.append(self.energy_estimate)
+        new_shape.append(self.battery)
+        new_shape.append(self.task_len)
+        new_shape.append(self.rest)
+        return new_shape
 
     def equals(self):
         """
@@ -58,16 +62,3 @@ class Task(object):
         self.cd = 0.0
         # 传出数据量
         self.rd = 0.0
-
-        """
-        任务模型构造方法
-        :param args: 暂时不知道有哪些参数  # TODO
-        参数参考：
-        private double rest; //剩余生命周期
-        private int k;  //最大执行次数上限
-        private double wl; //工作负载
-        private double ip; //输入数据量
-        private double op; //输出数据量
-        private double wait;//任务在队列中的等待时间
-        """
-        self.args = args

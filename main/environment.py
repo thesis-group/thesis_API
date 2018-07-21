@@ -1,3 +1,4 @@
+# coding=utf-8
 import time
 import numpy as np
 
@@ -31,7 +32,6 @@ np.random.seed(1)
 class Env(object):
     def __init__(self):
         super(Env, self).__init__()
-        # z修改动作空间# TODO
 
         self.action_size = Nx * (M + 1) + 1
 
@@ -95,6 +95,11 @@ class Env(object):
         return check_list
 
     def reset(self):
+        """
+        初始化首状态
+        :return: 首状态
+        :rtype: structs.State
+        """
         # 初始化 TODO
         initial_state = structs.State()
         initial_bandwidth = self.bandwidth
