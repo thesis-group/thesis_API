@@ -44,10 +44,10 @@ class Env(object):
         self.canvas = self._build_canvas()
         self.counter = 0
         self.rewards = []
-        self.bandwidth = []
+        self.bandwidth = [0, 0, 0, 0, 0]
         self.failure = False
 
-        self.E_MEC,self.E_Local = 0.0, 0.0
+        self.E_MEC, self.E_Local = 0.0, 0.0
         self.battery_cost = 0.0
         self.energy_harvest = 0.0
 
@@ -96,8 +96,17 @@ class Env(object):
 
     def reset(self):
         # 初始化 TODO
-        self.reset_reward()
-        return self.get_state()
+        initial_state = structs.State()
+        initial_bandwidth = self.bandwidth
+        for i in range(len(self.bandwidth)):
+            initial_bandwidth[i] = random.randint(1, 9)
+        initial_state.bandwidth = initial_bandwidth
+        initial_state.energy_estimate = self.predict()
+        initial_state.battery = 100
+        initial_state.task_len = 1
+        e_time += self.calculateTimeCost(self.taskList[0])
+        initial_state.rest = self.taskList[0].rest
+        return initial_state
 
     def step(self, action, state, index):
         time.sleep(0.07)
@@ -174,7 +183,7 @@ class Env(object):
 
     def energy_cost(self, task):
         self.E_MEC = power * self.x_off * task.cd / self.bandwidth[self.m]
-        self.E_Local = fai * frequency ^ 2 # TODO
+        self.E_Local = fai * frequency ^ 2  # TODO
         return self.E_Local + self.E_MEC
 
     def energy_get(self):
