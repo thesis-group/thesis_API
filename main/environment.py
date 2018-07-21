@@ -23,7 +23,6 @@ M = 5  # 云+MEC个数
 B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 excu_v = [1, 1, 1, 1, 1]
 
-e_time = 0  # 当前时间 self TODO
 currentTaskIndex = 0  # 当前做到的任务标号
 
 np.random.seed(1)
@@ -45,6 +44,7 @@ class Env(object):
         self.counter = 0
         self.rewards = []
         self.bandwidth = [0, 0, 0, 0, 0]
+        self.e_time = 0
         self.failure = False
 
         self.E_MEC, self.E_Local = 0.0, 0.0
@@ -109,7 +109,7 @@ class Env(object):
         initial_state.energy_estimate = self.predict()
         initial_state.battery = 100
         initial_state.task_len = 1
-        e_time += self.calculateTimeCost(self.taskList[0])
+        self.e_time += self.calculateTimeCost(self.taskList[0])
         initial_state.rest = self.taskList[0].rest
         return initial_state
 
