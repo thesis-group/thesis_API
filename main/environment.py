@@ -22,7 +22,7 @@ M = 5  # 云+MEC个数
 B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 excu_v = [1, 1, 1, 1, 1]
 
-currentTaskIndex = 0  # 当前做到的任务标号
+currentTaskIndex = -1  # 当前做到的任务标号
 
 np.random.seed(1)
 
@@ -116,7 +116,7 @@ class Env(object):
         self.x_off = (action + 5) / 6 * 0.2
         self.m = (action + 5) % 6
 
-        self.battery_cost = self.energy_cost(index)
+        self.battery_cost = self.energy_cost(self.taskList[index])
         self.energy_harvest = self.energy_get()
 
         s_ = structs.State()
@@ -127,6 +127,7 @@ class Env(object):
 
         self.failure = self.fail(s_.battery, s_.rest)
 
+        task = self.taskList[index]
         self.execution(task)
 
         reward = self.get_reward(state, action, task)
@@ -196,7 +197,7 @@ class Env(object):
 
     def energy_cost(self, task):
         self.E_MEC = power * self.x_off * task.cd / self.bandwidth[self.m]
-        self.E_Local = fai * frequency ^ 2  # TODO E_local算式不确定
+        self.E_Local = fai * (frequency ** 2)  # TODO E_local算式不确定
         return self.E_Local + self.E_MEC
 
     def energy_get(self):

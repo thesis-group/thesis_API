@@ -58,7 +58,7 @@ class DeepSARSAgent:
             q_values = self.model.predict(state)
             return np.argmax(q_values[0])
 
-    def train_model(self, state, action, reward, next_state, next_action, done):
+    def train_model(self, state, action, reward, next_state, next_action):
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     env = Env()
     agent = DeepSARSAgent()
 
-    task_index = 0
+    task_index = -1
     succ = 0
 
 
