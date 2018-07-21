@@ -64,11 +64,6 @@ class Env(tk.Tk):
 
     def reset_reward(self):
 
-        for reward in self.rewards:
-            self.canvas.delete(reward['figure'])
-
-        self.rewards.clear()
-        self.goal.clear()
 
     def set_reward(self, state, reward):
         state = [int(state[0]), int(state[1])]
@@ -98,11 +93,6 @@ class Env(tk.Tk):
         return check_list
 
     def reset(self):
-        self.update()
-        time.sleep(0.5)
-        x, y = self.canvas.coords(self.rectangle)
-        self.canvas.move(self.rectangle, UNIT / 2 - x, UNIT / 2 - y)
-        # return observation
         self.reset_reward()
         return self.get_state()
 
@@ -180,7 +170,7 @@ class Env(tk.Tk):
         return self.E_Local + self.E_MEC
 
     def energy_get(self):
-        return 0, 0
+        return 0.0
 
     def render(self):
         time.sleep(0.07)

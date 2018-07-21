@@ -81,28 +81,43 @@ if __name__ == "__main__":
     env = Env()
     agent = DeepSARSAgent()
 
-    global_step = 0
+    task_index = 0
+    succ = 0
     scores, episodes = [], []
+
+    data = []
+    D = []
 
     for e in range(EPISODES):
         done = False
         score = 0
         state = env.reset()
         state = np.reshape(state, [1, 15])
+        action = agent.get_action(state)
 
         while not done:
             # fresh env
-            global_step += 1
+            if succ:
+                task_index += 1
 
             # get action for the current state and go one step in environment
-            action = agent.get_action(state)
-            next_state, reward, done = env.step(action, state)
+            # 还需要决定任务联动模式（task/index） TODO
+            next_state, reward = env.step(action, state, task_index)
             next_state = np.reshape(next_state, [1, 15])
+
+            # 经验池
+            data = [state, action, reward, next_state]
+            D.append(data)
+
+            # 缺少取出操作 TODO
+
             next_action = agent.get_action(next_state)
             agent.train_model(state, action, reward, next_state, next_action,
                               done)
             state = next_state
+            action = next_action
             # every time step we do training
+
             score += reward
 
             state = copy.deepcopy(next_state)
