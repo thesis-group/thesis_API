@@ -3,10 +3,8 @@ import time
 import numpy as np
 
 from model import structs
-from PIL import ImageTk, Image
 import random
 
-PhotoImage = ImageTk.PhotoImage
 
 HEIGHT = 5  # grid height
 WIDTH = 5  # grid width
@@ -38,10 +36,9 @@ class Env(object):
         self.x_off = 0
         self.m = 0
 
-        self.title('DeepSARSA')
+        self.title = 'DeepSARSA'
 
         self.taskList = self.load_task()
-        self.canvas = self._build_canvas()
         self.counter = 0
         self.rewards = []
         self.bandwidth = [0, 0, 0, 0, 0]
@@ -53,15 +50,15 @@ class Env(object):
         self.energy_harvest = 0.0
 
     def load_task(self):
-        filename = '.../train/data.txt'
+        filename = './train/data.txt'
         pos = []
-        temp = structs.Task
+        temp = structs.Task()
         with open(filename, 'r') as file_to_read:
             while True:
                 lines = file_to_read.readline()
                 if not lines:
                     break
-                temp.cd, temp.rd, temp.rest = [float(i) for i in lines.split(',')]  # 分割为逗号,（英文）
+                temp.arrivalTime, temp.cd, temp.rd, temp.rest = [float(i) for i in lines.split(',')]  # 分割为逗号,（英文）
                 pos.append(temp)  # 添加新读取的数据
         return pos
 
@@ -77,7 +74,6 @@ class Env(object):
             temp['direction'] = -1
             temp['reward'] = reward
 
-        temp['coords'] = self.canvas.coords(temp['figure'])
         temp['state'] = state
         self.rewards.append(temp)
 

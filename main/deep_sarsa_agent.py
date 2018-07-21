@@ -7,6 +7,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import Sequential
 
+
 EPISODES = 1000
 Nx = 5  # 卸载率的粒度
 M = 5  # 云+MEC个数
@@ -92,9 +93,9 @@ if __name__ == "__main__":
     for e in range(EPISODES):
         done = False
         score = 0
-        state = env.reset().reshape()
-        state = np.reshape(state, [1, 15])
-        action = agent.get_action(state)
+        state = env.reset()
+        shaped_state = state.reshape()
+        action = agent.get_action(shaped_state)
 
         while not done:
             # fresh env
@@ -102,7 +103,7 @@ if __name__ == "__main__":
 
             # get action for the current state and go one step in environment
             next_state, reward = env.step(action, state, task_index)
-            next_state = np.reshape(next_state, [1, 15])
+            shaped_next_state = next_state.reshape()
 
             # 经验池
             data = [state, action, reward, next_state]
@@ -110,8 +111,8 @@ if __name__ == "__main__":
 
             # TODO 缺少取出操作
 
-            next_action = agent.get_action(next_state)
-            agent.train_model(state, action, reward, next_state, next_action)
+            next_action = agent.get_action(shaped_next_state)
+            agent.train_model(shaped_state, action, reward, shaped_next_state, next_action)
 
             state = next_state
             action = next_action
