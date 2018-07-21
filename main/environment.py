@@ -46,6 +46,8 @@ class Env(tk.Tk):
         self.counter = 0
         self.rewards = []
         self.bandwidth = []
+
+        self.E_MEC,self.E_Local = 0.0, 0.0
         self.battery_cost = 0.0
         self.energy_harvest = 0.0
 
@@ -58,7 +60,7 @@ class Env(tk.Tk):
                 lines = file_to_read.readline()
                 if not lines:
                     break
-                temp.cd, temp.rd, temp.rest = [float(i) for i in lines.split()]  # 分割为空格
+                temp.cd, temp.rd, temp.rest = [float(i) for i in lines.split(',')]  # 分割为逗号,（英文）
                 pos.append(temp)  # 添加新读取的数据
         return pos
 
@@ -152,15 +154,15 @@ class Env(tk.Tk):
 
     def Qlenth(self, state):
         currentqlength = state.task_len
-        nextTask = taskList[currentTaskIndex + 1]
-        while i in range(currentTaskIndex, len(taskList)):
-            if taskList[i].arrivalTime <= e_time:
+        nextTask = self.taskList[currentTaskIndex + 1]
+        while i in range(currentTaskIndex, len(self.taskList)):
+            if self.taskList[i].arrivalTime <= e_time:
                 currentqlength = currentqlength + 1
             pass  # 队列长度和当前任务lifespan TODO
         return currentqlength, nextTask.arrivalTime + nextTask.rest - e_time
 
     def get_reward(self, state, action, task):
-        r_ = sa_ * failcost() + beta * (self.E_Local + self.E_MEC) + gama * self.calculateTimeCost(task)
+        r_ = sa_ * failcost() + beta * (self.E_Lmocal + self.E_MEC) + gama * self.calculateTimeCost(task)
         # 计算当前的即使回报 TODO
         return r_
 
