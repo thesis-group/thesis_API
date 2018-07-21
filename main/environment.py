@@ -65,7 +65,7 @@ class Env(object):
         return pos
 
     def reset_reward(self):
-
+        pass
 
     def set_reward(self, state, reward):
         state = [int(state[0]), int(state[1])]
@@ -180,7 +180,3 @@ class Env(object):
     def energy_get(self):
         # TODO
         return 0.0
-
-    def render(self):
-        time.sleep(0.07)
-        self.update()
