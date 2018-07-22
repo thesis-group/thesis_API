@@ -1,7 +1,7 @@
 # coding=utf-8
 import time
 import numpy as np
-
+import copy
 from model import structs
 import random
 
@@ -38,7 +38,7 @@ class Env(object):
 
         self.title = 'DeepSARSA'
 
-        self.taskList = self.load_task()
+        self.taskList = self.load_task().copy()
         self.counter = 0
         self.rewards = []
         self.bandwidth = [0, 0, 0, 0, 0, 0]
@@ -59,7 +59,7 @@ class Env(object):
                 if not lines:
                     break
                 temp.arrivalTime, temp.cd, temp.rd, temp.rest = [float(i) for i in lines.split(',')]  # 分割为逗号,（英文）
-                pos.append(temp)  # 添加新读取的数据
+                pos.append(copy.deepcopy(temp))  # 添加新读取的数据
         return pos
 
     def reset_reward(self):
@@ -135,17 +135,6 @@ class Env(object):
         reward = self.get_reward(state, action, task)
 
         return s_, reward
-
-    def move_rewards(self):
-        new_rewards = []
-        for temp in self.rewards:
-            if temp['reward'] == 1:
-                new_rewards.append(temp)
-                continue
-            temp['coords'] = self.move_const(temp)
-            temp['state'] = self.coords_to_state(temp['coords'])
-            new_rewards.append(temp)
-        return new_rewards
 
     def execution(self, task):
         # 失败判断
