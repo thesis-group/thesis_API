@@ -9,9 +9,9 @@ import random
 HEIGHT = 5  # grid height
 WIDTH = 5  # grid width
 
-sa_ = 0.1
-beta = 0.1
-gamma = 0.1
+sa_ = -0.1
+beta = -0.1
+gamma = -0.1
 fai = 0.1
 frequency = 1
 
@@ -20,7 +20,7 @@ power = 1
 Nx = 5  # 卸载率的粒度
 M = 5  # MEC个数
 B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-excu_v = [1, 1, 1, 1, 1, 1]
+excu_v = [15, 2, 3, 1, 2, 1]
 
 currentTaskIndex = -1  # 当前做到的任务标号
 
@@ -151,7 +151,7 @@ class Env(object):
         te = self.x_off * task.cd / excu_v[self.m]
         td = self.x_off * task.rd / self.bandwidth[self.m]
         tm = tu + te + td + tt
-        tl = 0
+        tl = 0 # TODO DVFS
         return max(tm, tl)
 
     def predict(self):

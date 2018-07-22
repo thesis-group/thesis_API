@@ -8,7 +8,7 @@ from keras.optimizers import Adam
 from keras.models import Sequential
 
 
-EPISODES = 1000
+EPISODES = 100
 Nx = 5  # 卸载率的粒度
 M = 5  # MEC个数
 
@@ -76,7 +76,7 @@ class DeepSARSAgent:
         target = np.reshape(target, [1, self.action_size])
         # make minibatch which includes target q value and predicted q value
         # and do the model fit!
-        self.model.fit(state, target, epochs=1, verbose=2)
+        self.model.fit(state, target, batch_size=50, epochs=1000, verbose=2)
 
 
 if __name__ == "__main__":
