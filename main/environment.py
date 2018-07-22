@@ -112,7 +112,7 @@ class Env(object):
         return initial_state
 
     def step(self, action, state, index):
-        time.sleep(0.07)
+        time.sleep(0.01)
 
         self.x_off = (action + 5) / 6 * 0.2
         self.m = (action + 5) % 6

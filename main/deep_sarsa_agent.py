@@ -3,10 +3,9 @@ import copy
 import random
 import numpy as np
 from environment import Env
-from keras.layers import Dense
+from keras.layers import Dense, Activation
 from keras.optimizers import Adam
 from keras.models import Sequential
-
 
 EPISODES = 100
 Nx = 5  # 卸载率的粒度
@@ -26,7 +25,7 @@ class DeepSARSAgent:
 
         self.epsilon = 1.  # exploration
         self.epsilon_decay = .9999
-        self.epsilon_min = 0.01
+        self.epsilon_min = 0.001
         self.model = self.build_model()
 
         if self.load_model:
@@ -38,13 +37,15 @@ class DeepSARSAgent:
     # 网络模型使用Sequential模型利用add或list添加，决定网络结构 # TODO
     def build_model(self):
         model = Sequential()
-        model.add(Dense(200, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(100, activation='relu'))
-        model.add(Dense(self.action_size, activation='linear'))
+        model.add(Dense(10, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(17, activation='relu'))
+        model.add(Dense(24, activation='relu'))
+        model.add(Dense(self.action_size, activation='softmax'))
+
         # 打印模型结构,可删# TODO
         model.summary()
         # 损失函数与优化算法以及指标列表的选择# TODO
-        model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
+        model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate), metrics=['accuracy'])
         return model
 
     # get action from model using epsilon-greedy policy
@@ -76,16 +77,16 @@ class DeepSARSAgent:
         target = np.reshape(target, [1, self.action_size])
         # make minibatch which includes target q value and predicted q value
         # and do the model fit!
-        self.model.fit(state, target, batch_size=50, epochs=1000, verbose=2)
+        self.model.fit(state, target, batch_size=100, epochs=5, verbose=2)
 
 
 if __name__ == "__main__":
     env = Env()
     agent = DeepSARSAgent()
 
-    task_index = -1
-    succ = 0
-    last_task = False
+
+
+
 
     data = []
     D = []
@@ -93,6 +94,9 @@ if __name__ == "__main__":
     for e in range(EPISODES):
         done = False
         score = 0
+        task_index = -1
+        succ = 0
+        last_task = False
         state = env.reset()
         shaped_state = np.reshape(state.reshape(), [1, 10])
         action = agent.get_action(shaped_state)
@@ -124,6 +128,8 @@ if __name__ == "__main__":
             # every time step we do training
 
             state = copy.deepcopy(next_state)
+
+        agent.model.save_weights("./train/deep_sarsa.h5")
 
         if last_task:
             break
