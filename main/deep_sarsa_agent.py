@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     task_index = -1
     succ = 0
-
+    last_task = False
 
     data = []
     D = []
@@ -102,7 +102,12 @@ if __name__ == "__main__":
             task_index += 1
 
             # get action for the current state and go one step in environment
-            next_state, reward = env.step(action, state, task_index)
+            try:
+                next_state, reward = env.step(action, state, task_index)
+            except IndexError:
+                last_task = True
+                break
+
             shaped_next_state = np.reshape(next_state.reshape(), [1, 10])
 
             # 经验池
@@ -119,6 +124,9 @@ if __name__ == "__main__":
             # every time step we do training
 
             state = copy.deepcopy(next_state)
+
+        if last_task:
+            break
 
         if e % 100 == 0:
             agent.model.save_weights("./save_model/deep_sarsa.h5")
