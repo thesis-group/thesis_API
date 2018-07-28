@@ -72,7 +72,8 @@ class DeepSARSAgent:
         if done:
             target[action] = reward
         else:
-            target[action] = (reward + self.discount_factor * self.model.predict(next_state)[0][next_action])
+            target[action] = reward + self.discount_factor * self.model.predict(next_state)[0][next_action]
+            print(reward + self.discount_factor * self.model.predict(next_state)[0][next_action])
 
         target = np.reshape(target, [1, self.action_size])
         # make minibatch which includes target q value and predicted q value
