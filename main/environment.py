@@ -16,6 +16,7 @@ fai = 0.1
 frequency = 1
 
 power = 1
+P_energy = 0.2
 
 Nx = 5  # 卸载率的粒度
 M = 5  # MEC个数
@@ -43,6 +44,7 @@ class Env(object):
         self.rewards = []
         self.bandwidth = [0, 0, 0, 0, 0, 0]
         self.e_time = 0
+        self.this_time = 0
         self.failure = False
 
         self.E_MEC, self.E_Local = 0.0, 0.0
@@ -62,35 +64,7 @@ class Env(object):
                 pos.append(copy.deepcopy(temp))  # 添加新读取的数据
         return pos
 
-    def reset_reward(self):
-        pass
-
-    def set_reward(self, state, reward):
-        state = [int(state[0]), int(state[1])]
-        x = int(state[0])
-        y = int(state[1])
-        temp = {}
-        if reward < 0:
-            temp['direction'] = -1
-            temp['reward'] = reward
-
-        temp['state'] = state
-        self.rewards.append(temp)
-
     # new methods
-
-    def check_if_reward(self, state):
-        check_list = dict()
-        check_list['if_goal'] = False
-        rewards = 0
-
-        for reward in self.rewards:
-            if reward['state'] == state:
-                rewards += reward['reward']
-        check_list['rewards'] = rewards
-
-        return check_list
-
     def reset(self):
         """
         初始化首状态
@@ -104,7 +78,7 @@ class Env(object):
             initial_bandwidth[i] = random.randint(1, 9)
         initial_state.bandwidth = initial_bandwidth
         initial_state.energy_estimate = self.predict()
-        initial_state.battery = 100
+        initial_state.battery = 1000
         initial_state.task_len = 1
         # e_time 的情况和episode TODO
         self.e_time = self.taskList[0].arrivalTime
@@ -112,67 +86,74 @@ class Env(object):
         return initial_state
 
     def step(self, action, state, index):
-        time.sleep(0.01)
+        time.sleep(0.005)
 
         self.x_off = (action + 5) / 6 * 0.2
         self.m = (action + 5) % 6
 
         task = self.taskList[index]
 
+        self.this_time = 0
+
+        s_ = copy.deepcopy(state)
+
+        if not self.failure:
+            s_.bandwidth = copy.deepcopy(self.bandwidth)
+            for i in range(len(self.bandwidth)):
+                self.bandwidth[i] = random.randint(1, 9)  # 目前的带宽范围是1-9
+
         self.battery_cost = self.energy_cost(task)
         self.energy_harvest = self.energy_get()
+        self.failure = self.fail(state, state.rest)
 
-        s_ = structs.State()
-        s_.bandwidth = self.bandwidth
-        s_.battery = state.battery - self.battery_cost + self.energy_harvest
+        self.this_time = self.calculateTimeCost(task, s_)
+        self.execution(task, s_)
+        print(self.e_time)
+
+        if not self.failure:
+            s_.battery = state.battery - self.battery_cost + self.energy_harvest
         s_.energy_estimate = self.predict()
-        s_.task_len, s_.rest = self.Qlenth(state)
+        s_.task_len, s_.rest = self.Qlenth(state, index)
 
-        self.failure = self.fail(s_.battery, s_.rest)
-
-        self.execution(task)
-
-        reward = self.get_reward(state, action, task)
+        reward = self.get_reward(state, action, task, s_)
 
         return s_, reward
 
-    def execution(self, task):
+    def execution(self, task, s_):
         # 失败判断
         if self.failure:
             return
-        for i in range(len(self.bandwidth)):
-            self.bandwidth[i] = random.randint(1, 9)  # 目前的带宽范围是1-9
-        self.e_time += self.calculateTimeCost(task)
+
+        self.e_time += self.this_time
 
     # 计算任务的花费时间
-    def calculateTimeCost(self, task):
+    def calculateTimeCost(self, task, s_):
+        if self.failure:
+            return 0
         tt = 0.1
-        tu = self.x_off * task.cd / self.bandwidth[self.m]
+        tu = self.x_off * task.cd / s_.bandwidth[self.m]
         te = self.x_off * task.cd / excu_v[self.m]
-        td = self.x_off * task.rd / self.bandwidth[self.m]
+        td = self.x_off * task.rd / s_.bandwidth[self.m]
         tm = tu + te + td + tt
-        tl = 0 # TODO DVFS
+        tl = 0.5  # TODO DVFS
         return max(tm, tl)
 
-    def predict(self):
-        pass  # TODO 预测下一阶段能量收集多少，依赖于enery_get()
-        energy = 0.0
-        return energy
-
-    def Qlenth(self, state):
+    def Qlenth(self, state, index):
         currentqlength = state.task_len
-        nextTask = self.taskList[currentTaskIndex + 1]
-        for i in range(currentTaskIndex, len(self.taskList)):
+        # nextTask未考虑容错
+        nextTask = self.taskList[index + 1]
+        for i in range(index + state.task_len, len(self.taskList)):
             if self.taskList[i].arrivalTime <= self.e_time:
                 currentqlength = currentqlength + 1
-            pass
-        return currentqlength, nextTask.arrivalTime + nextTask.rest - self.e_time
+            else:
+                break
+        return currentqlength - 1, nextTask.arrivalTime + nextTask.rest - self.e_time
 
-    def get_reward(self, state, action, task):
-        r_ = sa_ * self.failure + beta * (self.E_Local + self.E_MEC) + gamma * self.calculateTimeCost(task)
-        return r_
+    def get_reward(self, state, action, task, s_):
+        r_ = sa_ * self.failure + beta * (self.E_Local + self.E_MEC) + gamma * self.this_time
+        return round(r_, 3)
 
-    def fail(self, battery, rest):
+    def fail(self, state, rest):
         """
         判断任务执行情况
         :param battery: 电池电量
@@ -182,6 +163,7 @@ class Env(object):
         :return: 任务是否执行失败
         :rtype: bool
         """
+        battery = state.battery - self.battery_cost + state.energy_estimate
         if battery < 0 or rest < 0:
             return True
         return False
@@ -191,6 +173,12 @@ class Env(object):
         self.E_Local = fai * (frequency ** 2)  # TODO E_local算式不确定
         return self.E_Local + self.E_MEC
 
+    def predict(self):
+        pass  # TODO 预测下一阶段能量收集多少
+        energy = 3
+        return energy
+
     def energy_get(self):
-        # TODO 能量获取机制不确定
-        return 0.0
+        # TODO 真实能量获取
+        energy = self.this_time * P_energy
+        return energy

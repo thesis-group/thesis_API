@@ -21,7 +21,7 @@ class DeepSARSAgent:
 
         self.state_size = 10
         self.discount_factor = 0.99
-        self.learning_rate = 0.001
+        self.learning_rate = 0.01
 
         self.epsilon = 1.  # exploration
         self.epsilon_decay = .9999
@@ -38,8 +38,9 @@ class DeepSARSAgent:
     def build_model(self):
         model = Sequential()
         model.add(Dense(10, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(17, activation='relu'))
-        model.add(Dense(24, activation='relu'))
+        model.add(Dense(15, activation='relu'))
+        model.add(Dense(20, activation='relu'))
+        model.add(Dense(25, activation='relu'))
         model.add(Dense(self.action_size, activation='softmax'))
 
         # 打印模型结构,可删# TODO
@@ -71,29 +72,26 @@ class DeepSARSAgent:
         if done:
             target[action] = reward
         else:
-            target[action] = (reward + self.discount_factor *
-                              self.model.predict(next_state)[0][next_action])
+            target[action] = (reward + self.discount_factor * self.model.predict(next_state)[0][next_action])
 
         target = np.reshape(target, [1, self.action_size])
         # make minibatch which includes target q value and predicted q value
         # and do the model fit!
-        self.model.fit(state, target, batch_size=100, epochs=5, verbose=2)
+        self.model.fit(state, target, batch_size=200, epochs=1, verbose=2, shuffle=True)
 
 
 if __name__ == "__main__":
     env = Env()
     agent = DeepSARSAgent()
 
-
-
-
+    times = 0
 
     data = []
     D = []
 
     for e in range(EPISODES):
         done = False
-        score = 0
+
         task_index = -1
         succ = 0
         last_task = False
@@ -130,9 +128,8 @@ if __name__ == "__main__":
             state = copy.deepcopy(next_state)
 
         agent.model.save_weights("./train/deep_sarsa.h5")
-
-        if last_task:
-            break
+        times += 1
 
         if e % 100 == 0:
             agent.model.save_weights("./train/deep_sarsa.h5")
+    print(times)
