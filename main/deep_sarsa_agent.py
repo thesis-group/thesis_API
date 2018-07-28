@@ -2,7 +2,7 @@
 import copy
 import random
 import numpy as np
-from environment import Env
+from main.environment import Env
 from keras.layers import Dense, Activation
 from keras.optimizers import Adam
 from keras.models import Sequential
@@ -10,6 +10,7 @@ from keras.models import Sequential
 EPISODES = 100
 Nx = 5  # 卸载率的粒度
 M = 5  # MEC个数
+
 
 # this is DeepSARSA Agent for the GridWorld
 # Utilize Neural Network as q function approximator

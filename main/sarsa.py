@@ -2,7 +2,7 @@
 import copy
 import random
 import numpy as np
-from environment import Env
+from main.environment import Env
 from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import Sequential
