@@ -79,7 +79,7 @@ class DeepSARSAgent:
         target = np.reshape(target, [1, self.action_size])
         # make minibatch which includes target q value and predicted q value
         # and do the model fit!
-        self.model.fit(state, target, batch_size=200, epochs=1, verbose=2, shuffle=True)
+        self.model.fit(state, target, batch_size=1, epochs=1, verbose=2, shuffle=True)
 
 
 if __name__ == "__main__":
@@ -123,10 +123,9 @@ if __name__ == "__main__":
             next_action = agent.get_action(shaped_next_state)
             agent.train_model(shaped_state, action, reward, shaped_next_state, next_action)
 
-            state = next_state
+            shaped_state = copy.deepcopy(shaped_next_state)
             action = next_action
             # every time step we do training
-
             state = copy.deepcopy(next_state)
 
         agent.model.save_weights("./train/deep_sarsa.h5")
