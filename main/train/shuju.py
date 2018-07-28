@@ -4,7 +4,7 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    la = 0.5
+    la = 0.3
     N = 100000
     xs = [random.expovariate(la) for i in range(N)]
     ps = np.cumsum(xs)
@@ -23,7 +23,7 @@ if __name__ == '__main__':
         if cd < 0:
             cd = 0.5
         rd = random.normalvariate(exp2, var2) * cd
-        ls = cd * 2
+        ls = cd * 2.5
         f.write(str(ps[i]))
         f.write(',')
         f.write(str(cd))
