@@ -19,7 +19,7 @@ power = 1
 P_energy = 0.2
 
 Nx = 5  # 卸载率的粒度
-M = 5  # MEC个数
+M = 3  # MEC个数
 B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 excu_v = [15, 2, 3, 1, 2, 1]
 
@@ -42,7 +42,7 @@ class Env(object):
         self.taskList = self.load_task().copy()
         self.counter = 0
         self.rewards = []
-        self.bandwidth = [0, 0, 0, 0, 0, 0]
+        self.bandwidth = [0, 0, 0, 0]
         self.e_time = 0
         self.this_time = 0
         self.failure = False

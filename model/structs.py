@@ -14,7 +14,7 @@ class State(object):
     """
 
     def __init__(self):
-        self.bandwidth = [0, 0, 0, 0, 0, 0]
+        self.bandwidth = [0, 0, 0, 0]
         self.energy_estimate = 0.0
         self.battery = 0.0
         self.task_len = 0

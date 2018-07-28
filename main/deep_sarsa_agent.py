@@ -9,7 +9,7 @@ from keras.models import Sequential
 
 EPISODES = 100
 Nx = 5  # 卸载率的粒度
-M = 5  # MEC个数
+M = 3  # MEC个数
 
 
 # this is DeepSARSA Agent for the GridWorld
@@ -20,7 +20,7 @@ class DeepSARSAgent:
 
         self.action_size = Nx * (M + 1) + 1
 
-        self.state_size = 10
+        self.state_size = M + 5
         self.discount_factor = 0.99
         self.learning_rate = 0.01
 
@@ -38,10 +38,8 @@ class DeepSARSAgent:
     # 网络模型使用Sequential模型利用add或list添加，决定网络结构 # TODO
     def build_model(self):
         model = Sequential()
-        model.add(Dense(10, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(15, activation='relu'))
-        model.add(Dense(20, activation='relu'))
-        model.add(Dense(25, activation='relu'))
+        model.add(Dense(13, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(17, activation='relu'))
         model.add(Dense(self.action_size, activation='softmax'))
 
         # 打印模型结构,可删# TODO
@@ -98,7 +96,7 @@ if __name__ == "__main__":
         succ = 0
         last_task = False
         state = env.reset()
-        shaped_state = np.reshape(state.reshape(), [1, 10])
+        shaped_state = np.reshape(state.reshape(), [1, -1])
         action = agent.get_action(shaped_state)
 
         while not done:
@@ -112,7 +110,7 @@ if __name__ == "__main__":
                 last_task = True
                 break
 
-            shaped_next_state = np.reshape(next_state.reshape(), [1, 10])
+            shaped_next_state = np.reshape(next_state.reshape(), [1, -1])
 
             # 经验池
             data = [state, action, reward, next_state]
