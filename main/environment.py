@@ -87,7 +87,8 @@ class Env(object):
     def step(self, action, state, index):
         time.sleep(0.005)
 
-        self.x_off = (action + 3) / 4 * 0.2
+        self.x_off = (action + 3) / 4
+        self.x_off *= 0.2
         self.m = (action + 3) % 4
 
         task = self.taskList[index]

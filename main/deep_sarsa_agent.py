@@ -114,7 +114,8 @@ if __name__ == "__main__":
             # get action for the current state and go one step in environment
             try:
                 next_state, reward, current_task = env.step(action, state, task_index)
-                x_off = (action + 3) / 4 * 0.2
+                x_off = (action + 3) / 4 
+                x_off *= 0.2
                 if fault_tolerance and wrong_execution():
                     task_index -= 1
                     current_task.rd *= x_off
