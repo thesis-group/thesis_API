@@ -39,8 +39,8 @@ class DeepSARSAgent:
     # 网络模型使用Sequential模型利用add或list添加，决定网络结构 # TODO
     def build_model(self):
         model = Sequential()
-        model.add(Dense(30, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(30, activation='relu'))
+        model.add(Dense(13, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(17, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
 
         # 打印模型结构,可删# TODO
@@ -63,7 +63,7 @@ class DeepSARSAgent:
     def train_model(self, state, action, reward, next_state, next_action):
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-
+        print('e = ', self.epsilon)
         state = np.float32(state)
         next_state = np.float32(next_state)
         target = self.model.predict(state)[0]
@@ -73,7 +73,7 @@ class DeepSARSAgent:
             target[action] = reward
         else:
             target[action] = reward + self.discount_factor * self.model.predict(next_state)[0][next_action]
-            print(reward + self.discount_factor * self.model.predict(next_state)[0][next_action])
+            print('target = ', reward + self.discount_factor * self.model.predict(next_state)[0][next_action])
 
         target = np.reshape(target, [1, self.action_size])
         # make minibatch which includes target q value and predicted q value
@@ -82,7 +82,7 @@ class DeepSARSAgent:
 
 
 def wrong_execution():
-    number = random.randomint(1, 100)
+    number = random.randint(1, 100)
     if number >= 5:
         return True
     return False
@@ -145,3 +145,4 @@ if __name__ == "__main__":
         if e % 100 == 0:
             agent.model.save_weights("./train/deep_sarsa.h5")
     print(times)
+

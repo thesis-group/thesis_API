@@ -107,7 +107,7 @@ class Env(object):
 
         self.this_time = self.calculateTimeCost(task, s_)
         self.execution(task, s_)
-        print(self.e_time)
+        print('time = ', self.e_time)
 
         if not self.failure:
             s_.battery = state.battery - self.battery_cost + self.energy_harvest
