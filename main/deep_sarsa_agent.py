@@ -11,7 +11,7 @@ EPISODES = 80
 Nx = 5  # 卸载率的粒度
 M = 3  # MEC个数
 fault_tolerance = True
-type = 0  # 0 -- 训练; 1 -- 测试
+train = True  # True -- 训练; False -- 测试
 group_size = 1000  # 一组任务集的任务数量
 
 
@@ -91,7 +91,7 @@ def wrong_execution():
 
 
 if __name__ == "__main__":
-    env = Env()
+    env = Env(train)
     agent = DeepSARSAgent()
 
     times = 0
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     data = []
     D = []
 
-    if type == 1:
+    if not train:
         EPISODES = 20
 
     for e in range(EPISODES):
@@ -108,13 +108,20 @@ if __name__ == "__main__":
         task_index = -1
         succ = 0
         last_task = False
-        state = env.reset()
+        state = env.reset(True)  # 初始化任务文件偏移量
         shaped_state = np.reshape(state.reshape(), [1, -1])
         action = agent.get_action(shaped_state)
 
         while not done:
             # fresh env
             task_index += 1
+
+            if task_index != 0 and task_index % group_size == 0:
+                agent.model.save_weights("./train/deep_sarsa.h5")
+                state = env.reset()
+                agent.model.load_weights("./train/deep_sarsa.h5")
+                times += 1
+                print(times)
 
             # get action for the current state and go one step in environment
             try:
@@ -144,14 +151,6 @@ if __name__ == "__main__":
             action = next_action
             # every time step we do training
             state = copy.deepcopy(next_state)
-
-        agent.model.save_weights("./train/deep_sarsa.h5")
-        times += 1
-
-        if e % 100 == 0:
-            agent.model.save_weights("./train/deep_sarsa.h5")
-
-    print(times)
 
     with open('statistics.txt') as f:
         total_time_cost, total_battery_cost, total_failure = env.get_statistics()

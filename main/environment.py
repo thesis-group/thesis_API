@@ -28,7 +28,7 @@ np.random.seed(1)
 
 
 class Env(object):
-    def __init__(self):
+    def __init__(self, train):
         super(Env, self).__init__()
 
         self.action_size = Nx * (M + 1) + 1
@@ -38,7 +38,8 @@ class Env(object):
 
         self.title = 'DeepSARSA'
 
-        self.taskList = self.load_task().copy()
+        self.allTask = self.load_task(train).copy()
+        self.taskList = self.load_part()
         self.counter = 0
         self.rewards = []
         self.bandwidth = [0, 0, 0, 0]
@@ -53,8 +54,12 @@ class Env(object):
         self.total_time_cost = 0
         self.total_battery_cost = 0
 
-    def load_task(self):
-        filename = './train/data.txt'
+        # 任务文件偏移量
+        self.file_start = 0
+        self.group_size = 1000
+
+    def load_task(self, train):
+        filename = './train/data.txt' if train else './train/train_data.txt'
         pos = []
         temp = structs.Task()
         with open(filename, 'r') as file_to_read:
@@ -66,13 +71,23 @@ class Env(object):
                 pos.append(copy.deepcopy(temp))  # 添加新读取的数据
         return pos
 
+    def load_part(self):
+        file_end = self.file_start + self.group_size
+        if file_end > len(self.allTask):
+            file_end = len(self.allTask)
+        return self.allTask[self.file_start:file_end]
+
+
     # new methods
-    def reset(self):
+    def reset(self, new_task=False):
         """
         初始化首状态
         :return: 首状态
         :rtype: structs.State
         """
+        # 文件偏移量初始化
+        self.file_start = self.file_start + self.group_size if not new_task else 0
+        self.taskList = self.load_part()
         # 初始化 TODO
         initial_state = structs.State()
         initial_bandwidth = self.bandwidth
