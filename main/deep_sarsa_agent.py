@@ -38,9 +38,9 @@ class DeepSARSAgent:
     # 网络模型使用Sequential模型利用add或list添加，决定网络结构 # TODO
     def build_model(self):
         model = Sequential()
-        model.add(Dense(13, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(17, activation='relu'))
-        model.add(Dense(self.action_size, activation='softmax'))
+        model.add(Dense(30, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(30, activation='relu'))
+        model.add(Dense(self.action_size, activation='linear'))
 
         # 打印模型结构,可删# TODO
         model.summary()
