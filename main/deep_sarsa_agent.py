@@ -10,6 +10,7 @@ from keras.models import Sequential
 EPISODES = 100
 Nx = 5  # 卸载率的粒度
 M = 3  # MEC个数
+fault_tolerance = True
 
 
 # this is DeepSARSA Agent for the GridWorld
@@ -80,6 +81,13 @@ class DeepSARSAgent:
         self.model.fit(state, target, batch_size=1, epochs=1, verbose=2, shuffle=True)
 
 
+def wrong_execution():
+    number = random.randomint(1, 100)
+    if number >= 5:
+        return True
+    return False
+
+
 if __name__ == "__main__":
     env = Env()
     agent = DeepSARSAgent()
@@ -105,7 +113,12 @@ if __name__ == "__main__":
 
             # get action for the current state and go one step in environment
             try:
-                next_state, reward = env.step(action, state, task_index)
+                next_state, reward, current_task = env.step(action, state, task_index)
+                x_off = (action + 3) / 4 * 0.2
+                if fault_tolerance and wrong_execution():
+                    task_index -= 1
+                    current_task.rd *= x_off
+                    current_task.cd *= x_off
             except IndexError:
                 last_task = True
                 break

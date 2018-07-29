@@ -5,7 +5,6 @@ import copy
 from model import structs
 import random
 
-
 HEIGHT = 5  # grid height
 WIDTH = 5  # grid width
 
@@ -117,7 +116,7 @@ class Env(object):
 
         reward = self.get_reward(state, action, task, s_)
 
-        return s_, reward
+        return s_, reward, task
 
     def execution(self, task, s_):
         # 失败判断
