@@ -7,10 +7,12 @@ from keras.layers import Dense, Activation
 from keras.optimizers import Adam
 from keras.models import Sequential
 
-EPISODES = 100
+EPISODES = 80
 Nx = 5  # 卸载率的粒度
 M = 3  # MEC个数
 fault_tolerance = True
+type = 0  # 0 -- 训练; 1 -- 测试
+group_size = 1000  # 一组任务集的任务数量
 
 
 # this is DeepSARSA Agent for the GridWorld
@@ -96,6 +98,9 @@ if __name__ == "__main__":
 
     data = []
     D = []
+
+    if type == 1:
+        EPISODES = 20
 
     for e in range(EPISODES):
         done = False
