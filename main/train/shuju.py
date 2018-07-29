@@ -32,6 +32,8 @@ def write_data(file, N):
 
 if __name__ == '__main__':
     with open('train_data.txt', mode='a+') as f:
-        write_data(f, 80 * 1000)  # 80组，每组1000个
+        for i in range(79):
+            write_data(f, 1000)  # 80组，每组1000个
     with open('data.txt', mode='a+')as f:
-        write_data(f, 20 * 1000)
+        for i in range(19):
+            write_data(f, 20 * 1000)

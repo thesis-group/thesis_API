@@ -49,6 +49,9 @@ class Env(object):
         self.E_MEC, self.E_Local = 0.0, 0.0
         self.battery_cost = 0.0
         self.energy_harvest = 0.0
+        self.total_failure = 0
+        self.total_time_cost = 0
+        self.total_battery_cost = 0
 
     def load_task(self):
         filename = './train/data.txt'
@@ -87,7 +90,8 @@ class Env(object):
     def step(self, action, state, index):
         time.sleep(0.005)
 
-        self.x_off = (action + 3) / 4 * 0.2
+        self.x_off = (action + 3) / 4
+        self.x_off *= 0.2
         self.m = (action + 3) % 4
 
         task = self.taskList[index]
@@ -115,6 +119,15 @@ class Env(object):
         s_.task_len, s_.rest = self.Qlenth(state, index)
 
         reward = self.get_reward(state, action, task, s_)
+
+        with open('statistics.txt')as f:
+            f.write(index + "," + reward + "," + self.failure + "," + self.battery_cost + "," +
+                    self.this_time + '\n')
+
+        if self.failure:
+            self.total_failure += 1
+        self.total_battery_cost += self.battery_cost
+        self.total_time_cost += self.this_time
 
         return s_, reward, task
 
@@ -164,8 +177,13 @@ class Env(object):
         """
         battery = state.battery - self.battery_cost + state.energy_estimate
         if battery < 0 or rest < 0:
+            self.total_failure += 1
             return True
         return False
+
+    # 获取统计信息
+    def get_statistics(self):
+        return self.total_time_cost, self.total_battery_cost, self.total_failure
 
     def energy_cost(self, task):
         self.E_MEC = power * self.x_off * task.cd / self.bandwidth[self.m]

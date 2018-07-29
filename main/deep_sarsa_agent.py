@@ -119,7 +119,8 @@ if __name__ == "__main__":
             # get action for the current state and go one step in environment
             try:
                 next_state, reward, current_task = env.step(action, state, task_index)
-                x_off = (action + 3) / 4 * 0.2
+                x_off = (action + 3) / 4
+                x_off *= 0.2
                 if fault_tolerance and wrong_execution():
                     task_index -= 1
                     current_task.rd *= x_off
@@ -149,5 +150,9 @@ if __name__ == "__main__":
 
         if e % 100 == 0:
             agent.model.save_weights("./train/deep_sarsa.h5")
+
     print(times)
 
+    with open('statistics.txt') as f:
+        total_time_cost, total_battery_cost, total_failure = env.get_statistics()
+        f.write(total_failure / 1000 + "," + total_battery_cost / 1000 + "," + total_time_cost / 1000)
