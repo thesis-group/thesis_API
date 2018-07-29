@@ -77,7 +77,6 @@ class Env(object):
             file_end = len(self.allTask)
         return self.allTask[self.file_start:file_end]
 
-
     # new methods
     def reset(self, new_task=False):
         """
