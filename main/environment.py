@@ -125,7 +125,7 @@ class Env(object):
                     self.this_time + '\n')
 
         if self.failure:
-            self.failure += 1
+            self.total_failure += 1
         self.total_battery_cost += self.battery_cost
         self.total_time_cost += self.this_time
 
