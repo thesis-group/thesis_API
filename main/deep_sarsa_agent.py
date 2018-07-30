@@ -11,7 +11,7 @@ EPISODES = 80
 Nx = 5  # 卸载率的粒度
 M = 3  # MEC个数
 fault_tolerance = True
-train = True  # True -- 训练; False -- 测试
+train = False  # True -- 训练; False -- 测试
 group_size = 1000  # 一组任务集的任务数量
 
 
@@ -31,6 +31,9 @@ class DeepSARSAgent:
         self.epsilon_decay = .9999
         self.epsilon_min = 0.001
         self.model = self.build_model()
+
+        if not train:
+            self.epsilon = self.epsilon_min
 
         if self.load_model:
             self.epsilon = 0.05
