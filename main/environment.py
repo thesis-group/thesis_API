@@ -38,6 +38,10 @@ class Env(object):
 
         self.title = 'DeepSARSA'
 
+        # 任务文件偏移量
+        self.file_start = 0
+        self.group_size = 1000
+
         self.allTask = self.load_task(train).copy()
         self.taskList = self.load_part()
         self.counter = 0
@@ -54,9 +58,7 @@ class Env(object):
         self.total_time_cost = 0
         self.total_battery_cost = 0
 
-        # 任务文件偏移量
-        self.file_start = 0
-        self.group_size = 1000
+
 
     def load_task(self, train):
         filename = './train/data.txt' if train else './train/train_data.txt'
@@ -134,9 +136,9 @@ class Env(object):
 
         reward = self.get_reward(state, action, task, s_)
 
-        with open('statistics.txt')as f:
-            f.write(index + "," + reward + "," + self.failure + "," + self.battery_cost + "," +
-                    self.this_time + '\n')
+        with open('statistics.txt', mode='a+')as f:
+            f.write(str(index) + "," + str(reward) + "," + str(self.failure) + "," + str(self.battery_cost) + "," +
+                    str(self.this_time) + '\n')
 
         if self.failure:
             self.total_failure += 1
