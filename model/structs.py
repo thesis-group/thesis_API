@@ -20,6 +20,13 @@ class State(object):
         self.task_len = 0
         self.rest = 0.0
 
+    def __init__(self, bandwidth, energy_estimate, battery, task_len, rest):
+        self.bandwidth = bandwidth
+        self.energy_estimate = energy_estimate
+        self.battery = battery
+        self.task_len = task_len
+        self.rest = rest
+
     def reshape(self):
         new_shape = []
         for b in self.bandwidth:

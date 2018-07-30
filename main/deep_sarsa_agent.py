@@ -101,6 +101,7 @@ if __name__ == "__main__":
 
     if not train:
         EPISODES = 20
+        agent.model.load_weights('train/deep_sarsa.h5')
 
     for e in range(EPISODES):
         done = False
@@ -117,9 +118,7 @@ if __name__ == "__main__":
             task_index += 1
 
             if task_index != 0 and task_index % group_size == 0:
-                agent.model.save_weights("./train/deep_sarsa.h5")
                 state = env.reset()
-                agent.model.load_weights("./train/deep_sarsa.h5")
                 times += 1
                 print(times)
 
@@ -152,6 +151,8 @@ if __name__ == "__main__":
             # every time step we do training
             state = copy.deepcopy(next_state)
 
+    agent.model.save_weights('train/deep_sarsa.h5')
+
     with open('statistics.txt') as f:
         total_time_cost, total_battery_cost, total_failure = env.get_statistics()
-        f.write(total_failure / 1000 + "," + total_battery_cost / 1000 + "," + total_time_cost / 1000)
+        f.write(total_failure / 20000 + "," + total_battery_cost / 20000 + "," + total_time_cost / 20000)

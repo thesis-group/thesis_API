@@ -7,6 +7,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import Sequential
 from model.structs import State
+import json
 
 EPISODES = 1000
 Nx = 5  # 卸载率的粒度
@@ -15,6 +16,8 @@ M = 5  # 云+MEC个数
 Q_table = {}
 learning_rate = 0.1  # TODO 这里加了一下参数
 discount_factor = 0.1
+train = True  # True -- 训练; False -- 测试
+group_size = 1000  # 一组任务集的任务数量
 
 
 # this is DeepSARSA Agent for the GridWorld
@@ -38,9 +41,10 @@ class DeepSARSAgent:
             self.epsilon = 0.05
             self.model.load_weights('./save_model/deep_sarsa_trained.h5')
 
-    # approximate Q function using Neural Network
-    # state is input and Q Value of each action is output of network
-    # 网络模型使用Sequential模型利用add或list添加，决定网络结构 # TODO
+    #
+    #     # approximate Q function using Neural Network
+    #     # state is input and Q Value of each action is output of network
+    #     # 网络模型使用Sequential模型利用add或list添加，决定网络结构 # TODO
     def build_model(self):
         model = Sequential()
         model.add(Dense(30, input_dim=self.state_size, activation='relu'))
@@ -82,8 +86,28 @@ class DeepSARSAgent:
         self.model.fit(state, target, epochs=1, verbose=0)
 
 
-# TODO 初始化Q表
-def init_q_table():
+#
+def dic2Q_table(dic):
+    result = {}
+    all_state_dic = dic.keys()
+    for state_dic in all_state_dic:
+        state = State(state_dic['bandwidth'], state_dic['energy_estimate'], state_dic['battery'], state_dic['task_len'],
+                      state_dic['rest'])
+        result[state] = dic[state_dic]
+    return result
+
+
+def read_Q_table():
+    with open('sarsa_model.json')as f:
+        json_str = f.readline()
+        saved_table = json.load(json_str, object_hook=dic2Q_table)
+    Q_table = saved_table
+
+
+# # TODO 初始化Q表
+def init_q_table(train):
+    if not train:
+        read_Q_table()
     for first_bandwidth in range(1, 10, 2):
         for second_bandwidth in range(1, 10, 2):
             for third_bandwidth in range(1, 10, 2):
@@ -136,7 +160,7 @@ if __name__ == "__main__":
 
     data = []
     D = []
-    DeepSARSAgent.init_q_table()
+    DeepSARSAgent.init_q_table(train)
 
     for e in range(EPISODES):
         done = False
@@ -174,5 +198,6 @@ if __name__ == "__main__":
 
             state = copy.deepcopy(next_state)
 
-        if e % 100 == 0:
-            agent.model.save_weights("./save_model/deep_sarsa.h5")
+    if e % 100 == 0:
+        with open("sarsa_model.json", "a+")as f:
+            f.write(json.dump(Q_table, default=lambda obj: obj.__dict__))
