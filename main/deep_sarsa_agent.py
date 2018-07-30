@@ -105,9 +105,7 @@ if __name__ == "__main__":
 
     for e in range(EPISODES):
         done = False
-
         task_index = -1
-        succ = 0
         last_task = False
         state = env.reset(True)  # 初始化任务文件偏移量
         shaped_state = np.reshape(state.reshape(), [1, -1])

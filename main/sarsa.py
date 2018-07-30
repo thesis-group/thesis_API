@@ -35,26 +35,9 @@ class DeepSARSAgent:
         self.epsilon = 1.  # exploration
         self.epsilon_decay = .9999
         self.epsilon_min = 0.01
-        self.model = self.build_model()
 
         if self.load_model:
             self.epsilon = 0.05
-            self.model.load_weights('./save_model/deep_sarsa_trained.h5')
-
-    #
-    #     # approximate Q function using Neural Network
-    #     # state is input and Q Value of each action is output of network
-    #     # 网络模型使用Sequential模型利用add或list添加，决定网络结构 # TODO
-    def build_model(self):
-        model = Sequential()
-        model.add(Dense(30, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(30, activation='relu'))
-        model.add(Dense(self.action_size, activation='linear'))
-        # 打印模型结构,可删# TODO
-        model.summary()
-        # 损失函数与优化算法以及指标列表的选择# TODO
-        model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
-        return model
 
     # get action from model using epsilon-greedy policy
     def get_action(self, state):
@@ -65,34 +48,18 @@ class DeepSARSAgent:
             # Predict the reward value based on the given state
             return np.argmax(Q_table[state])  # TODO 这里改动了，通过查表获得下一个Action
 
-    def train_model(self, state, action, reward, next_state, next_action, done):
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
-
-        state = np.float32(state)
-        next_state = np.float32(next_state)
-        target = self.model.predict(state)[0]
-        # like Q Learning, get maximum Q value at s'
-        # But from target model
-        if done:
-            target[action] = reward
-        else:
-            target[action] = (reward + self.discount_factor *
-                              self.model.predict(next_state)[0][next_action])
-
-        target = np.reshape(target, [1, 5])
-        # make minibatch which includes target q value and predicted q value
-        # and do the model fit!
-        self.model.fit(state, target, epochs=1, verbose=0)
-
 
 #
 def dic2Q_table(dic):
     result = {}
     all_state_dic = dic.keys()
     for state_dic in all_state_dic:
-        state = State(state_dic['bandwidth'], state_dic['energy_estimate'], state_dic['battery'], state_dic['task_len'],
-                      state_dic['rest'])
+        state = State()
+        state.bandwidth = state_dic['bandwidth']
+        state.energy_estimate = state_dic['bandwidth']
+        state.battery = state_dic['battery']
+        state.task_len = state_dic['task_len']
+        state.rest = state_dic['rest']
         result[state] = dic[state_dic]
     return result
 
@@ -152,20 +119,20 @@ def format_state(old_state):
 
 
 if __name__ == "__main__":
-    env = Env()
+    env = Env(train)
     agent = DeepSARSAgent()
 
-    task_index = 0
+
     succ = 0
 
     data = []
     D = []
-    DeepSARSAgent.init_q_table(train)
+    init_q_table(train)
 
     for e in range(EPISODES):
         done = False
-        score = 0
-        state = env.reset()
+        task_index = -1
+        state = env.reset(True)  # 初始化任务文件偏移量
         shaped_state = state.reshape()
         action = agent.get_action(shaped_state)
 
