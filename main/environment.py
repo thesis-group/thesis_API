@@ -58,8 +58,6 @@ class Env(object):
         self.total_time_cost = 0
         self.total_battery_cost = 0
 
-
-
     def load_task(self, train):
         filename = './train/data.txt' if train else './train/train_data.txt'
         pos = []

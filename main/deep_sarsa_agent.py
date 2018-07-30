@@ -153,6 +153,6 @@ if __name__ == "__main__":
 
     agent.model.save_weights('train/deep_sarsa.h5')
 
-    with open('statistics.txt') as f:
+    with open('statistics.txt', mode='a+') as f:
         total_time_cost, total_battery_cost, total_failure = env.get_statistics()
-        f.write(total_failure / 20000 + "," + total_battery_cost / 20000 + "," + total_time_cost / 20000)
+        f.write(str(total_failure / 20000) + "," + str(total_battery_cost / 20000) + "," + str(total_time_cost / 20000))
