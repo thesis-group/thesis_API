@@ -85,7 +85,7 @@ class DeepSARSAgent:
 
 def wrong_execution():
     number = random.randint(1, 100)
-    if number >= 5:
+    if number <= 5:
         return True
     return False
 
