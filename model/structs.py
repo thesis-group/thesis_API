@@ -36,14 +36,14 @@ class State(object):
         new_shape.append(self.task_len)
         new_shape.append(self.rest)
         return new_shape
+"""
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
-    def equals(self):
-        """
-        判断两个状态是否是同一状态
-        :return: 判断结果
-        :rtype: bool
-        """
-        pass
+    def __hash__(self):
+        return hash(self.bandwidth[0]) + hash(self.bandwidth[1]) + hash(self.bandwidth[2]) + hash(self.bandwidth[3]) \
+               + hash(self.energy_estimate) + hash(self.battery) + hash(self.task_len) + hash(self.rest)
+"""
 
 
 class Task(object):

@@ -10,7 +10,7 @@ EPISODES = 1000
 Nx = 5  # 卸载率的粒度
 M = 3  # 云+MEC个数
 
-Q_table = {}
+Q_table = np.zeros([18191250, 21])
 learning_rate = 0.1  # TODO 这里加了一下参数
 discount_factor = 0.1
 fault_tolerance = True
@@ -76,6 +76,8 @@ def init_q_table(train):
     if not train:
         read_Q_table()
         return
+
+    """
     for first_bandwidth in range(1, 10, 2):
         for second_bandwidth in range(1, 10, 2):
             for third_bandwidth in range(1, 10, 2):
@@ -85,28 +87,59 @@ def init_q_table(train):
                             for task_len in range(0, 21):
                                 for rest in range(0, 21):
                                     this_state = State()
-                                    this_state.bandwidth = [first_bandwidth, second_bandwidth, third_bandwidth,
-                                                            fourth_bandwidth]
+                                    this_state.bandwidth = [first_bandwidth, second_bandwidth,
+                                                            third_bandwidth, fourth_bandwidth]
                                     this_state.energy_estimate = energy_estimate
                                     this_state.battery = battery
                                     this_state.task_len = task_len
                                     this_state.rest = rest
-                                    Q_table[this_state] = np.zeros(21)
+                                    Q_table[this_state] = [[0] * 21]
+    """
+
+def recode(state):
+    return ((((((state.bandwidth[0] * 5 + state.bandwidth[1]) * 5 + state.bandwidth[2]) * 5 + state.bandwidth[3]) * 6
+              + state.energy_estimate) * 11 + state.battery) * 21 + state.task_len) * 21 + state.rest
+
+
+def uncode(stateid):
+    state = State()
+    state.rest = stateid % 21
+    stateid //= 21
+    state.task_len = stateid % 21
+    stateid //= 21
+    state.battery = stateid % 11
+    stateid //= 11
+    state.energy_estimate = stateid % 6
+    stateid //= 6
+    state.bandwidth[3] = stateid % 5
+    stateid //= 5
+    state.bandwidth[2] = stateid % 5
+    stateid //= 5
+    state.bandwidth[1] = stateid % 5
+    stateid //= 5
+    state.bandwidth[0] = stateid
+    return state
+
 
 # with sample <s, a, r, s', a'>, learns new q function
 def learn(state, action, reward, next_state, next_action):
     print(state, ' ', action)
-    current_q = Q_table[state][action]
+    current_qt = Q_table[state]
+    current_q = current_qt[action]
     next_state_q = Q_table[next_state][next_action]
     new_q = (current_q + learning_rate *
              (reward + discount_factor * next_state_q - current_q))
     Q_table[state][action] = new_q
 
-def format_state(old_state):
+
+def format_state(old_state):  # TODO 值确认
     bandwidth_list = old_state.bandwidth
     for i in range(len(bandwidth_list)):
         format_bandwidth = bandwidth_list[i]
-        format_bandwidth = (format_bandwidth + 1) / 2 * 2 - 1
+        format_bandwidth = format_bandwidth + 1
+        format_bandwidth //= 2
+        format_bandwidth *= 2
+        format_bandwidth -= 1
         bandwidth_list[i] = format_bandwidth
     old_state.energy_estimate = int(old_state.energy_estimate / 1)
     old_state.battery = int(old_state.battery / 10)
@@ -117,11 +150,13 @@ def format_state(old_state):
         if old_state.rest > 20:
             old_state.rest = 20
 
+
 def wrong_execution():
     number = random.randint(1, 100)
     if number <= 5:
         return True
     return False
+
 
 if __name__ == "__main__":
     env = Env(train)
@@ -130,7 +165,8 @@ if __name__ == "__main__":
     data = []
     D = []
     init_q_table(train)
-
+    stateid = 0
+    next_stateid = 0
     if not train:
         EPISODES = 20
 
@@ -170,7 +206,7 @@ if __name__ == "__main__":
             format_state(next_state)  # 缩小State
 
             next_action = agent.get_action(next_state)
-            learn(state, action, reward, next_state, next_action)  # TODO 这里做了改动
+            learn(stateid, action, reward, next_stateid, next_action)  # TODO 这里做了改动
 
             action = next_action
             # every time step we do training
