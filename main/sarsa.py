@@ -3,19 +3,17 @@ import copy
 import random
 import numpy as np
 from main.environment import Env
-from keras.layers import Dense
-from keras.optimizers import Adam
-from keras.models import Sequential
 from model.structs import State
 import json
 
 EPISODES = 1000
 Nx = 5  # 卸载率的粒度
-M = 5  # 云+MEC个数
+M = 3  # 云+MEC个数
 
 Q_table = {}
 learning_rate = 0.1  # TODO 这里加了一下参数
 discount_factor = 0.1
+fault_tolerance = True
 train = True  # True -- 训练; False -- 测试
 group_size = 1000  # 一组任务集的任务数量
 
@@ -28,7 +26,7 @@ class DeepSARSAgent:
 
         self.action_size = Nx * (M + 1) + 1
 
-        self.state_size = 15
+        self.state_size = M + 5
         self.discount_factor = 0.99
         self.learning_rate = 0.001
 
@@ -36,6 +34,8 @@ class DeepSARSAgent:
         self.epsilon_decay = .9999
         self.epsilon_min = 0.01
 
+        if not train:
+            self.epsilon = self.epsilon_min
         if self.load_model:
             self.epsilon = 0.05
 
@@ -75,6 +75,7 @@ def read_Q_table():
 def init_q_table(train):
     if not train:
         read_Q_table()
+        return
     for first_bandwidth in range(1, 10, 2):
         for second_bandwidth in range(1, 10, 2):
             for third_bandwidth in range(1, 10, 2):
@@ -92,66 +93,78 @@ def init_q_table(train):
                                     this_state.rest = rest
                                     Q_table[this_state] = np.zeros(21)
 
-
 # with sample <s, a, r, s', a'>, learns new q function
 def learn(state, action, reward, next_state, next_action):
+    print(state, ' ', action)
     current_q = Q_table[state][action]
     next_state_q = Q_table[next_state][next_action]
     new_q = (current_q + learning_rate *
              (reward + discount_factor * next_state_q - current_q))
     Q_table[state][action] = new_q
 
-
 def format_state(old_state):
     bandwidth_list = old_state.bandwidth
-    for i in len(bandwidth_list):
+    for i in range(len(bandwidth_list)):
         format_bandwidth = bandwidth_list[i]
         format_bandwidth = (format_bandwidth + 1) / 2 * 2 - 1
         bandwidth_list[i] = format_bandwidth
-    old_state.energy_estimate = old_state.energy_estimate / 1
-    old_state.battery = old_state.battery / 10
+    old_state.energy_estimate = int(old_state.energy_estimate / 1)
+    old_state.battery = int(old_state.battery / 10)
     if old_state.rest < 0:
         old_state.rest = 0
     else:
-        old_state.rest = old_state.rest / 5
+        old_state.rest = int(old_state.rest / 5)
         if old_state.rest > 20:
             old_state.rest = 20
 
+def wrong_execution():
+    number = random.randint(1, 100)
+    if number <= 5:
+        return True
+    return False
 
 if __name__ == "__main__":
     env = Env(train)
     agent = DeepSARSAgent()
 
-
-    succ = 0
-
     data = []
     D = []
     init_q_table(train)
+
+    if not train:
+        EPISODES = 20
 
     for e in range(EPISODES):
         done = False
         task_index = -1
         state = env.reset(True)  # 初始化任务文件偏移量
-        shaped_state = state.reshape()
-        action = agent.get_action(shaped_state)
-
         extend_state = state  # 上一次循环的完整状态
+
+        format_state(state)  # 缩小State
+        action = agent.get_action(state)
+
         while not done:
             # fresh env
             task_index += 1
-
             state = extend_state  # 上一次的完整next_state状态
 
-            # get action for the current state and go one step in environment
-            next_state, reward = env.step(action, state, task_index)
+            if task_index != 0 and task_index % group_size == 0:
+                state = env.reset()
 
-            # 经验池
-            data = [state, action, reward, next_state]
-            D.append(data)
+            # get action for the current state and go one step in environment
+            try:
+                next_state, reward, current_task = env.step(action, state, task_index)
+                x_off = (action + 3) / 4
+                x_off *= 0.2
+                if fault_tolerance and wrong_execution():
+                    task_index -= 1
+                    current_task.rd *= x_off
+                    current_task.cd *= x_off
+            except IndexError:
+                last_task = True
+                break
 
             extend_state = next_state  # 保存next_state
-            # TODO 缺少取出操作
 
             format_state(state)  # 缩小State
             format_state(next_state)  # 缩小State
@@ -159,12 +172,7 @@ if __name__ == "__main__":
             next_action = agent.get_action(next_state)
             learn(state, action, reward, next_state, next_action)  # TODO 这里做了改动
 
-            state = next_state
             action = next_action
             # every time step we do training
-
-            state = copy.deepcopy(next_state)
-
-    if e % 100 == 0:
-        with open("sarsa_model.json", "a+")as f:
-            f.write(json.dump(Q_table, default=lambda obj: obj.__dict__))
+    with open("sarsa_model.json", "a+")as f:
+        f.write(json.dump(Q_table, default=lambda obj: obj.__dict__))
